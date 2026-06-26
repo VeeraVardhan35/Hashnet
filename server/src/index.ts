@@ -1,24 +1,20 @@
-/**
- * IMPORTANT:
- * ---------
- * Do not manually edit this file if you'd like to host your server on Colyseus Cloud
- *
- * If you're self-hosting, you can see "Raw usage" from the documentation.
- * 
- * See: https://docs.colyseus.io/server
- */
-import { listen } from "@colyseus/tools";
-
-// Import Colyseus config
-import app from "./app.config.js";
-
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
+import { createApp } from "./app.config.js";
 
 dotenv.config();
 
-(async () => {
-  await connectDB();
+const PORT = Number(process.env.PORT) || 2567;
 
-  listen(app);
+(async () => {
+    await connectDB();
+
+    const { httpServer } = createApp();
+
+    // httpServer already has the Colyseus WebSocket transport attached.
+    // Bind the port once — do NOT call gameServer.listen() separately.
+    httpServer.listen(PORT, () => {
+        console.log(`[Hashet] Server running on http://localhost:${PORT}`);
+        console.log(`[Hashet] Colyseus monitor: http://localhost:${PORT}/monitor`);
+    });
 })();

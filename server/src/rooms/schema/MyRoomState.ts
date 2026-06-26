@@ -1,7 +1,4 @@
-import { Schema, type } from "@colyseus/schema";
-
-export class MyRoomState extends Schema {
-
-  @type("string") mySynchronizedProperty: string = "Hello world";
-
-}
+// This file is preserved for reference only.
+// The active room implementation is in ../MyRoom.ts
+// Do not compile this file.
+export {};

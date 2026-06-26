@@ -1,31 +1,32 @@
 import assert from "assert";
 import { ColyseusTestServer, boot } from "@colyseus/testing";
+import { LobbyState } from "../src/rooms/schema/LobbyState.js";
+import { MyRoom } from "../src/rooms/MyRoom.js";
 
-// import your "app.config.ts" file here.
-import appConfig from "../src/app.config.js";
-import { MyRoomState } from "../src/rooms/schema/MyRoomState.js";
+describe("Hashet Lobby Room", () => {
+  let colyseus: ColyseusTestServer;
 
-describe("testing your Colyseus app", () => {
-  let colyseus: ColyseusTestServer<typeof appConfig>;
+  before(async () => {
+    colyseus = await boot({
+      initializeGameServer: (gameServer: any) => {
+        gameServer.define("lobby", MyRoom);
+      },
+    });
+  });
 
-  before(async () => colyseus = await boot(appConfig));
   after(async () => colyseus.shutdown());
 
   beforeEach(async () => await colyseus.cleanup());
 
-  it("connecting into a room", async () => {
-    // `room` is the server-side Room instance reference.
-    const room = await colyseus.createRoom<MyRoomState>("my_room", {});
+  it("connecting into a lobby room", async () => {
+    const room = await colyseus.createRoom<LobbyState>("lobby", {});
+    const client1 = await colyseus.connectTo(room, { username: "TestPlayer" });
 
-    // `client1` is the client-side `Room` instance reference (same as JavaScript SDK)
-    const client1 = await colyseus.connectTo(room);
-
-    // make your assertions
     assert.strictEqual(client1.sessionId, room.clients[0].sessionId);
 
-    // wait for state sync
     await room.waitForNextPatch();
 
-    assert.deepStrictEqual({ mySynchronizedProperty: "Hello world" }, client1.state.toJSON());
+    assert.ok(room.state.players.size === 1);
+    assert.ok(room.state.roomCode.length === 6);
   });
 });
