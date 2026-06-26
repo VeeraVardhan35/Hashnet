@@ -11,6 +11,8 @@ import problemRoutes from "./routes/problem.routes.js";
 import { MyRoom } from "./rooms/MyRoom.js";
 import { QuizRoom } from "./rooms/QuizRoom.js";
 import { BattleRoom } from "./rooms/BattleRoom.js";
+import { TeamsRoom } from "./rooms/TeamsRoom.js";
+import { BossRaidRoom } from "./rooms/BossRaidRoom.js";
 
 /**
  * Creates and configures the Colyseus + Express app for colyseus@0.16.
@@ -26,6 +28,8 @@ export function createApp() {
             origin: [
                 "http://localhost:5173",
                 "http://localhost:5174",
+                "https://magnetic-crank-bucket.ngrok-free.dev",
+                "http://10.17.16.106:5173",
             ],
         })
     );
@@ -55,6 +59,8 @@ export function createApp() {
     gameServer.define("lobby", MyRoom);
     gameServer.define("quiz", QuizRoom);
     gameServer.define("battle", BattleRoom);
+    gameServer.define("teams", TeamsRoom);
+    gameServer.define("boss_raid", BossRaidRoom);
 
     return { httpServer, gameServer };
 }

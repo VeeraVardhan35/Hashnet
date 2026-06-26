@@ -20,20 +20,10 @@ export function useRoom() {
   const navigate = useNavigate();
 
   const {
-    room,
-    roomCode,
-    players,
-    connected,
-    gameStarted,
-    setRoom,
-    setPlayers,
-    setRoomCode,
-    setConnected,
-    setGameStarted,
-    setQuizRoomId,
-    setBattleRoomId,
-    setGameMode,
-    reset,
+    room, roomCode, players, connected, gameStarted,
+    setRoom, setPlayers, setRoomCode, setConnected, setGameStarted,
+    setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId,
+    setGameMode, reset,
   } = useRoomStore();
 
   const { user } = useAuthStore();
@@ -66,7 +56,7 @@ export function useRoom() {
 
       newRoom.onMessage(
         "gameStarted",
-        (data: { quizRoomId?: string; battleRoomId?: string }) => {
+        (data: { quizRoomId?: string; battleRoomId?: string; teamsRoomId?: string; bossRaidRoomId?: string }) => {
           setGameStarted(true);
           if (data.quizRoomId) {
             setQuizRoomId(data.quizRoomId);
@@ -74,6 +64,12 @@ export function useRoom() {
           } else if (data.battleRoomId) {
             setBattleRoomId(data.battleRoomId);
             navigate("/battle");
+          } else if (data.teamsRoomId) {
+            setTeamsRoomId(data.teamsRoomId);
+            navigate("/teams");
+          } else if (data.bossRaidRoomId) {
+            setBossRaidRoomId(data.bossRaidRoomId);
+            navigate("/boss-raid");
           }
         }
       );
@@ -90,7 +86,7 @@ export function useRoom() {
       setConnected(true);
     },
     [setConnected, setGameStarted, setPlayers, setRoomCode,
-     setQuizRoomId, setBattleRoomId, setGameMode, navigate]
+     setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId, setGameMode, navigate]
   );
 
   // ── Create Room (host) ─────────────────────────────────────────
@@ -121,7 +117,20 @@ export function useRoom() {
     navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
-  // ── Join Room by code (guest) ──────────────────────────────────
+  // ── Create Teams Room (host) ──────────────────────────────────────
+  const createTeamsRoom = useCallback(async () => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "teams" });
+    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
+  // ── Create Boss Raid Room (host) ─────────────────────────────────
+  const createBossRaidRoom = useCallback(async () => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "boss_raid" });
+    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
   const joinRoom = useCallback(
     async (code: string) => {
       if (!user) throw new Error("Not authenticated");
@@ -168,16 +177,8 @@ export function useRoom() {
   }, [navigate, reset]);
 
   return {
-    room,
-    roomCode,
-    players,
-    connected,
-    gameStarted,
-    createRoom,
-    createBattleRoom,
-    joinRoom,
-    toggleReady,
-    startGame,
-    leaveRoom,
+    room, roomCode, players, connected, gameStarted,
+    createRoom, createBattleRoom, createTeamsRoom, createBossRaidRoom,
+    joinRoom, toggleReady, startGame, leaveRoom,
   };
 }

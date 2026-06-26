@@ -12,11 +12,15 @@ interface RoomState {
   connected: boolean;
   /** Whether the game has started */
   gameStarted: boolean;
-  /** The Colyseus room ID for the QuizRoom (set when game starts) */
+  /** The Colyseus room ID for the QuizRoom */
   quizRoomId: string;
-  /** The Colyseus room ID for the BattleRoom (set when battle starts) */
+  /** The Colyseus room ID for the BattleRoom */
   battleRoomId: string;
-  /** Game mode of the current lobby: "quiz" | "battle" */
+  /** The Colyseus room ID for the TeamsRoom */
+  teamsRoomId: string;
+  /** The Colyseus room ID for the BossRaidRoom */
+  bossRaidRoomId: string;
+  /** Game mode of the current lobby */
   gameMode: string;
 
   setRoom: (room: any) => void;
@@ -26,6 +30,8 @@ interface RoomState {
   setGameStarted: (started: boolean) => void;
   setQuizRoomId: (id: string) => void;
   setBattleRoomId: (id: string) => void;
+  setTeamsRoomId: (id: string) => void;
+  setBossRaidRoomId: (id: string) => void;
   setGameMode: (mode: string) => void;
   /** Reset all room state (called on leave) */
   reset: () => void;
@@ -39,6 +45,8 @@ const initialState = {
   gameStarted: false,
   quizRoomId: "",
   battleRoomId: "",
+  teamsRoomId: "",
+  bossRaidRoomId: "",
   gameMode: "quiz",
 };
 
@@ -58,6 +66,10 @@ export const useRoomStore = create<RoomState>((set) => ({
   setQuizRoomId: (quizRoomId) => set({ quizRoomId }),
 
   setBattleRoomId: (battleRoomId) => set({ battleRoomId }),
+
+  setTeamsRoomId: (teamsRoomId) => set({ teamsRoomId }),
+
+  setBossRaidRoomId: (bossRaidRoomId) => set({ bossRaidRoomId }),
 
   setGameMode: (gameMode) => set({ gameMode }),
 

@@ -63,7 +63,7 @@ export default function BattlePage() {
     leaveRoom,
   } = useBattle();
 
-  const { setActiveTab } = useBattleStore();
+  const { setActiveTab, language, body, fullTemplate, setBody, setLanguage } = useBattleStore();
 
   // Redirect if no battle room
   useEffect(() => {
@@ -523,6 +523,11 @@ export default function BattlePage() {
           {/* Editor (takes most of the space) */}
           <div className="flex-1 overflow-hidden min-h-0">
             <CodeEditor
+              fullTemplate={fullTemplate}
+              language={language}
+              body={body}
+              onBodyChange={setBody}
+              onLanguageChange={setLanguage}
               onRun={runCode}
               onSubmit={submitCode}
               isRunning={isRunning}
