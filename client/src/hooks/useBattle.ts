@@ -246,19 +246,19 @@ export function useBattle() {
   const runCode = useCallback(() => {
     const room = roomRef.current;
     if (!room) return;
-    const { code, language } = useBattleStore.getState();
+    const { getFullCode, language } = useBattleStore.getState();
     setIsRunning(true);
     setRunResults([]);
-    room.send("runCode", { code, language });
+    room.send("runCode", { code: getFullCode(), language });
   }, [setIsRunning, setRunResults]);
 
   const submitCode = useCallback(() => {
     const room = roomRef.current;
     if (!room) return;
-    const { code, language } = useBattleStore.getState();
+    const { getFullCode, language } = useBattleStore.getState();
     setIsSubmitting(true);
     setLastVerdict("", "");
-    room.send("submitCode", { code, language });
+    room.send("submitCode", { code: getFullCode(), language });
   }, [setIsSubmitting, setLastVerdict]);
 
   const leaveRoom = useCallback(() => {

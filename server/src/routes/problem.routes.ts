@@ -42,8 +42,10 @@ A **substring** is a contiguous non-empty sequence of characters within a string
         ],
         templates: {
             python: `def lengthOfLongestSubstring(s: str) -> int:
+# USER_CODE_START
     # Write your solution here
     pass
+# USER_CODE_END
 
 s = input().strip()
 print(lengthOfLongestSubstring(s))`,
@@ -51,8 +53,10 @@ print(lengthOfLongestSubstring(s))`,
 const rl = readline.createInterface({ input: process.stdin });
 rl.on('line', (s) => {
     function lengthOfLongestSubstring(s) {
+// USER_CODE_START
         // Write your solution here
         return 0;
+// USER_CODE_END
     }
     console.log(lengthOfLongestSubstring(s.trim()));
     rl.close();
@@ -61,8 +65,10 @@ rl.on('line', (s) => {
 using namespace std;
 
 int lengthOfLongestSubstring(string s) {
+// USER_CODE_START
     // Write your solution here
     return 0;
+// USER_CODE_END
 }
 
 int main() {
@@ -102,8 +108,10 @@ Output \`true\` if valid, \`false\` otherwise.`,
         ],
         templates: {
             python: `def isValid(s: str) -> bool:
+# USER_CODE_START
     # Write your solution here
     pass
+# USER_CODE_END
 
 s = input().strip()
 result = isValid(s)
@@ -112,8 +120,10 @@ print(str(result).lower())`,
 const rl = readline.createInterface({ input: process.stdin });
 rl.on('line', (s) => {
     function isValid(s) {
+// USER_CODE_START
         // Write your solution here
         return false;
+// USER_CODE_END
     }
     console.log(isValid(s.trim()).toString());
     rl.close();
@@ -122,8 +132,10 @@ rl.on('line', (s) => {
 using namespace std;
 
 bool isValid(string s) {
+// USER_CODE_START
     // Write your solution here
     return false;
+// USER_CODE_END
 }
 
 int main() {
@@ -168,8 +180,10 @@ Numbers are given as a single line of space-separated integers.`,
         ],
         templates: {
             python: `def maxSubArray(nums) -> int:
+# USER_CODE_START
     # Write your solution here (Kadane's algorithm hint: O(n))
     pass
+# USER_CODE_END
 
 nums = list(map(int, input().split()))
 print(maxSubArray(nums))`,
@@ -178,8 +192,10 @@ const rl = readline.createInterface({ input: process.stdin });
 rl.on('line', (line) => {
     const nums = line.trim().split(' ').map(Number);
     function maxSubArray(nums) {
+// USER_CODE_START
         // Write your solution here
         return 0;
+// USER_CODE_END
     }
     console.log(maxSubArray(nums));
     rl.close();
@@ -188,8 +204,10 @@ rl.on('line', (line) => {
 using namespace std;
 
 int maxSubArray(vector<int>& nums) {
+// USER_CODE_START
     // Write your solution here
     return 0;
+// USER_CODE_END
 }
 
 int main() {

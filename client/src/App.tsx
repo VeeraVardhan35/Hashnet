@@ -7,6 +7,8 @@ import HomePage from "./pages/HomePage";
 import LobbyPage from "./pages/LobbyPage";
 import QuizPage from "./pages/QuizPage";
 import BattlePage from "./pages/BattlePage";
+import TeamsPage from "./pages/TeamsPage";
+import BossRaidPage from "./pages/BossRaidPage";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
           <Route path="/lobby" element={<LobbyPage />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/battle" element={<BattlePage />} />
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/boss-raid" element={<BossRaidPage />} />
         </Route>
 
         {/* Fallback */}

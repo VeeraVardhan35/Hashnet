@@ -10,6 +10,15 @@ export default function LobbyPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const room = useRoomStore((s) => s.room);
+  const gameMode = useRoomStore((s) => s.gameMode);
+
+  const MODE_META: Record<string, { label: string; icon: string; color: string }> = {
+    quiz:      { label: "Quiz Battle",   icon: "🧠", color: "text-violet-400" },
+    battle:    { label: "Battle Royale", icon: "⚡", color: "text-red-400" },
+    teams:     { label: "Teams Mode",    icon: "⚔️", color: "text-emerald-400" },
+    boss_raid: { label: "Boss Raid",     icon: "👾", color: "text-purple-400" },
+  };
+  const meta = MODE_META[gameMode] ?? { label: "Game Mode", icon: "🎮", color: "text-accent" };
 
   const {
     roomCode,
@@ -48,7 +57,12 @@ export default function LobbyPage() {
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
             </svg>
           </div>
-          <span className="font-bold text-text-primary text-lg tracking-tight">Hashet</span>
+          <div>
+            <span className="font-bold text-text-primary text-lg tracking-tight">Hashet</span>
+            <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 ${meta.color}`}>
+              {meta.icon} {meta.label}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -111,9 +125,28 @@ export default function LobbyPage() {
           {/* Game Started overlay state */}
           {gameStarted && (
             <div className="glass-card p-5 border-success/40 bg-success/10 text-center animate-fade-in">
-              <div className="text-3xl mb-2">🎮</div>
-              <p className="font-bold text-success">Game Started!</p>
+              <div className="text-3xl mb-2">{meta.icon}</div>
+              <p className="font-bold text-success">{meta.label} Starting!</p>
               <p className="text-xs text-text-secondary mt-1">Loading game…</p>
+            </div>
+          )}
+
+          {/* Mode-specific info card */}
+          {gameMode === "boss_raid" && !gameStarted && (
+            <div className="glass-card p-4 border-purple-500/20 bg-purple-500/5">
+              <p className="text-xs font-bold text-purple-400 mb-1">👾 Boss Raid Mode</p>
+              <p className="text-[11px] text-text-muted leading-relaxed">
+                All players co-op against an AI boss. Roles (DPS/Tank/Support) assigned on join.
+                Solve problems → deal damage. Stay alive to win!
+              </p>
+            </div>
+          )}
+          {gameMode === "teams" && !gameStarted && (
+            <div className="glass-card p-4 border-emerald-500/20 bg-emerald-500/5">
+              <p className="text-xs font-bold text-emerald-400 mb-1">⚔️ Teams Mode</p>
+              <p className="text-[11px] text-text-muted leading-relaxed">
+                Players split into Alpha &amp; Beta teams automatically. Highest combined team score wins!
+              </p>
             </div>
           )}
         </div>
@@ -125,6 +158,7 @@ export default function LobbyPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-text-primary">
               Lobby
+              <span className={`ml-2 text-sm font-bold ${meta.color}`}>{meta.icon}</span>
             </h2>
             <span className="text-text-muted text-sm">
               {isHost ? "You are the host" : `${players.find((p) => p.isHost)?.username ?? ""} is the host`}

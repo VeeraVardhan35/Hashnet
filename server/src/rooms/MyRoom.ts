@@ -12,7 +12,10 @@ export class MyRoom extends Room<LobbyState> {
 
             this.setState(new LobbyState());
             this.state.roomCode = generateRoomCode();
-            this.state.gameMode = options?.gameMode === "battle" ? "battle" : "quiz";
+            const validModes = ["quiz", "battle", "teams", "boss_raid"];
+            this.state.gameMode = validModes.includes(options?.gameMode ?? "")
+                ? (options!.gameMode as string)
+                : "quiz";
 
             // Expose roomCode in metadata so guests can discover rooms by code
             await this.setMetadata({ roomCode: this.state.roomCode });
@@ -56,7 +59,12 @@ export class MyRoom extends Room<LobbyState> {
 
                 // Create the appropriate game room via matchMaker
                 const gameMode = this.state.gameMode;
-                const seat = await matchMaker.createRoom(gameMode === "battle" ? "battle" : "quiz", {
+                const roomName = gameMode === "battle" ? "battle"
+                    : gameMode === "teams" ? "teams"
+                    : gameMode === "boss_raid" ? "boss_raid"
+                    : "quiz";
+
+                const seat = await matchMaker.createRoom(roomName, {
                     lobbyRoomCode: this.state.roomCode,
                 });
 
@@ -65,6 +73,12 @@ export class MyRoom extends Room<LobbyState> {
                 if (gameMode === "battle") {
                     console.log("[MyRoom] Battle started! BattleRoom:", seat.roomId);
                     this.broadcast("gameStarted", { battleRoomId: seat.roomId });
+                } else if (gameMode === "teams") {
+                    console.log("[MyRoom] Teams started! TeamsRoom:", seat.roomId);
+                    this.broadcast("gameStarted", { teamsRoomId: seat.roomId });
+                } else if (gameMode === "boss_raid") {
+                    console.log("[MyRoom] Boss Raid started! BossRaidRoom:", seat.roomId);
+                    this.broadcast("gameStarted", { bossRaidRoomId: seat.roomId });
                 } else {
                     console.log("[MyRoom] Quiz started! QuizRoom:", seat.roomId);
                     this.broadcast("gameStarted", { quizRoomId: seat.roomId });

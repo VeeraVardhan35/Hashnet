@@ -5,6 +5,7 @@ import type {
   BattleLiveEvent,
   RunCodeTestResult,
 } from "../types";
+import { splitTemplate, assembleCode } from "../utils/templateSplit";
 
 interface BattleState {
   /** Live Colyseus BattleRoom instance */
@@ -44,8 +45,10 @@ interface BattleState {
   finalLeaderboard: { id: string; username: string; score: number; solved: number; isAlive: boolean }[];
   /** Selected editor language */
   language: "python" | "javascript" | "cpp";
-  /** Current editor code */
-  code: string;
+  /** Full template string from the server (prefix + markers + default body + suffix) */
+  fullTemplate: string;
+  /** Only the editable function body — what the user is typing */
+  body: string;
   /** Which tab is active: "problem" | "submissions" */
   activeTab: "problem" | "submissions";
   /** Submission history for this session */
@@ -68,9 +71,11 @@ interface BattleState {
   setConnected: (c: boolean) => void;
   setFinalLeaderboard: (lb: BattleState["finalLeaderboard"]) => void;
   setLanguage: (lang: BattleState["language"]) => void;
-  setCode: (code: string) => void;
+  setBody: (body: string) => void;
   setActiveTab: (tab: BattleState["activeTab"]) => void;
   addSubmissionToHistory: (verdict: string, language: string) => void;
+  /** Returns the full assembled code to send to the server */
+  getFullCode: () => string;
   reset: () => void;
 }
 
@@ -96,7 +101,8 @@ const initialState = {
   connected: false,
   finalLeaderboard: [],
   language: "python" as const,
-  code: "",
+  fullTemplate: "",
+  body: "",
   activeTab: "problem" as const,
   submissionHistory: [],
 };
@@ -105,7 +111,11 @@ export const useBattleStore = create<BattleState>((set) => ({
   ...initialState,
 
   setBattleRoom: (battleRoom) => set({ battleRoom }),
-  setProblem: (problem) => set({ problem, code: problem.templates.python, language: "python" }),
+  setProblem: (problem) => {
+    const template = problem.templates.python ?? "";
+    const { body } = splitTemplate(template, "python");
+    set({ problem, language: "python", fullTemplate: template, body });
+  },
   setRoundNumber: (roundNumber) => set({ roundNumber }),
   setTotalRounds: (totalRounds) => set({ totalRounds }),
   setPhase: (phase) => set({ phase }),
@@ -117,11 +127,7 @@ export const useBattleStore = create<BattleState>((set) => ({
   addLiveEvent: (entry) =>
     set((s) => ({
       liveEvents: [
-        {
-          ...entry,
-          id: String(++eventCounter),
-          timestamp: Date.now(),
-        },
+        { ...entry, id: String(++eventCounter), timestamp: Date.now() },
         ...s.liveEvents,
       ].slice(0, 10),
     })),
@@ -133,8 +139,12 @@ export const useBattleStore = create<BattleState>((set) => ({
     set({ lastVerdict, lastVerdictDetails, lastEarned }),
   setConnected: (connected) => set({ connected }),
   setFinalLeaderboard: (finalLeaderboard) => set({ finalLeaderboard }),
-  setLanguage: (language) => set({ language }),
-  setCode: (code) => set({ code }),
+  setLanguage: (language) => set((s) => {
+    const template = s.problem?.templates[language] ?? "";
+    const { body } = splitTemplate(template, language);
+    return { language, fullTemplate: template, body };
+  }),
+  setBody: (body) => set({ body }),
   setActiveTab: (activeTab) => set({ activeTab }),
 
   addSubmissionToHistory: (verdict, language) =>
@@ -144,6 +154,11 @@ export const useBattleStore = create<BattleState>((set) => ({
         ...s.submissionHistory,
       ].slice(0, 20),
     })),
+
+  getFullCode: () => {
+    const s = useBattleStore.getState();
+    return assembleCode(splitTemplate(s.fullTemplate, s.language).prefix, s.body, splitTemplate(s.fullTemplate, s.language).suffix, s.language);
+  },
 
   reset: () => set(initialState),
 }));
