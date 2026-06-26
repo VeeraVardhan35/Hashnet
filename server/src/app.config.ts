@@ -1,69 +1,60 @@
-import {
-    defineServer,
-    defineRoom,
-    monitor,
-    playground,
-    createRouter,
-    createEndpoint,
-} from "colyseus";
-import authRoutes from "./routes/auth.routes.js";
 import express from "express";
 import cors from "cors";
+import { Server } from "@colyseus/core";
+import { WebSocketTransport } from "@colyseus/ws-transport";
+import { monitor } from "@colyseus/monitor";
+import { createServer } from "http";
+import authRoutes from "./routes/auth.routes.js";
+import roomRoutes from "./routes/room.routes.js";
+import quizRoutes from "./routes/quiz.routes.js";
+import problemRoutes from "./routes/problem.routes.js";
+import { MyRoom } from "./rooms/MyRoom.js";
+import { QuizRoom } from "./rooms/QuizRoom.js";
+import { BattleRoom } from "./rooms/BattleRoom.js";
 
 /**
- * Import your Room files
+ * Creates and configures the Colyseus + Express app for colyseus@0.16.
+ * Returns the httpServer (Colyseus WS transport is already attached).
  */
-import { MyRoom } from "./rooms/MyRoom.js";
+export function createApp() {
+    const app = express();
 
+    app.use(express.json());
 
-
-const server = defineServer({
-    /**
-     * Define your room handlers:
-     */
-    rooms: {
-        my_room: defineRoom(MyRoom)
-    },
-
-    /**
-     * Experimental: Define API routes. Built-in integration with the "playground" and SDK.
-     * 
-     * Usage from SDK: 
-     *   client.http.get("/api/hello").then((response) => {})
-     * 
-     */
-    routes: createRouter({
-        api_hello: createEndpoint("/api/hello", { method: "GET", }, async (ctx) => {
-            return { message: "Hello World" }
+    app.use(
+        cors({
+            origin: [
+                "http://localhost:5173",
+                "http://localhost:5174",
+            ],
         })
-    }),
+    );
 
-    /**
-     * Bind your custom express routes here:
-     * Read more: https://expressjs.com/en/starter/basic-routing.html
-     */
-    express: (app) => {
-        app.use(express.json());
+    app.use("/api/auth", authRoutes);
+    app.use("/api/rooms", roomRoutes);
+    app.use("/api/quiz", quizRoutes);
+    app.use("/api/problems", problemRoutes);
 
-        app.use(
-    cors({
-        origin:
-        "http://localhost:5173",
-    })
-);
-
-        app.use("/api/auth", authRoutes);
-
-        app.get("/hi", (req, res) => {
+    app.get("/hi", (_req, res) => {
         res.send("It's time to kick ass and chew bubblegum!");
-        });
+    });
 
-        app.use("/monitor", monitor());
+    // Colyseus monitor dashboard
+    app.use("/monitor", monitor());
 
-        if (process.env.NODE_ENV !== "production") {
-            app.use("/", playground());
-        }
-    }
-});
+    const httpServer = createServer(app);
 
-export default server;
+    // colyseus@0.16 requires an explicit transport layer
+    const gameServer = new Server({
+        transport: new WebSocketTransport({
+            server: httpServer,
+        }),
+    });
+
+    // Register game rooms
+    gameServer.define("lobby", MyRoom);
+    gameServer.define("quiz", QuizRoom);
+    gameServer.define("battle", BattleRoom);
+
+    return { httpServer, gameServer };
+}
