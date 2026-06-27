@@ -48,7 +48,7 @@ export default function LobbyPage() {
   const readyCount = players.filter((p) => p.ready).length;
 
   // Team mode helpers — must be defined before canStart
-  const isTeamMode = gameMode === "quiz_teams";
+  const isTeamMode = gameMode === "quiz_teams" || gameMode === "teams";
   const alphaCount = players.filter((p) => p.preferredTeam === "alpha").length;
   const betaCount  = players.filter((p) => p.preferredTeam === "beta").length;
   const unpickedCount = players.filter((p) => !p.preferredTeam).length;
