@@ -49,6 +49,11 @@ export function useQuiz() {
     reset,
   } = useQuizStore();
 
+  // expose a local reset for selected option (UI may need to clear optimistic state)
+  const resetSelectedOption = useCallback(() => {
+    setSelectedOption(-1);
+  }, [setSelectedOption]);
+
   const roomRef = useRef<any>(quizRoom);
   useEffect(() => {
     roomRef.current = quizRoom;
@@ -223,6 +228,7 @@ export function useQuiz() {
     finalLeaderboard,
     myEntry,
     submitAnswer,
+    resetSelectedOption,
     leaveQuiz,
   };
 }

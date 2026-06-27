@@ -110,7 +110,6 @@ export default function QuizPage() {
 
   const {
     questions,
-    currentQuestion,
     questionIndex,
     selectedOption,
     phase,
@@ -123,6 +122,7 @@ export default function QuizPage() {
     finalLeaderboard,
     myEntry,
     submitAnswer,
+    resetSelectedOption,
     leaveQuiz,
   } = useQuiz();
 
@@ -136,6 +136,9 @@ export default function QuizPage() {
   // ── Local countdown timer ────────────────────────────────────────
   const [timeLeft, setTimeLeft] = useState(0);
   const [countdownLeft, setCountdownLeft] = useState(0);
+  // Post-answer optimistic countdown and local index
+  const [postCountdown, setPostCountdown] = useState(0);
+  const [localIndex, setLocalIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (phase !== "question") return;
@@ -158,6 +161,34 @@ export default function QuizPage() {
     const id = setInterval(tick, 250);
     return () => clearInterval(id);
   }, [phase, phaseStartsAt]);
+
+  // Sync local optimistic index when server advances
+  useEffect(() => {
+    setLocalIndex(null);
+  }, [questionIndex]);
+
+  // Start a post-answer countdown to optimistically advance to next question
+  useEffect(() => {
+    if (selectedOption === -1) return;
+    if (postCountdown > 0) return;
+
+    let remaining = 5;
+    setPostCountdown(remaining);
+    const id = setInterval(() => {
+      remaining -= 1;
+      setPostCountdown(remaining);
+      if (remaining <= 0) {
+        clearInterval(id);
+        const next = Math.min(questionIndex + 1, Math.max(0, questions.length - 1));
+        setLocalIndex(next);
+        resetSelectedOption();
+        setPostCountdown(0);
+      }
+    }, 1000);
+
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOption]);
 
   // ── Stats ────────────────────────────────────────────────────────
   const answeredCount = useMemo(
@@ -243,12 +274,15 @@ export default function QuizPage() {
     );
   }
 
+  const displayIndex = localIndex ?? questionIndex;
+  const currentQuestion = questions[displayIndex] ?? null;
+
   if (!currentQuestion) return null;
 
   const hasAnswered = selectedOption !== -1;
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-bg-base overflow-hidden relative">
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
       <nav className="flex items-center justify-between px-4 py-3 border-b border-white/8 bg-bg-surface/80 backdrop-blur shrink-0">
@@ -264,7 +298,7 @@ export default function QuizPage() {
               QUIZ ROUND
             </p>
             <p className="text-text-secondary text-xs font-medium">
-              Question {questionIndex + 1} / {questions.length}
+              Question {displayIndex + 1} / {questions.length}
             </p>
           </div>
         </div>
@@ -312,6 +346,15 @@ export default function QuizPage() {
           </button>
         </div>
       </nav>
+
+      {postCountdown > 0 && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <div className="glass-card-solid p-8 text-center max-w-xs w-full">
+            <div className="text-7xl font-black text-gradient">{postCountdown}</div>
+            <div className="text-sm text-text-muted mt-2">Next question in…</div>
+          </div>
+        </div>
+      )}
 
       {/* ── Timer progress bar ────────────────────────────────────────────── */}
       <div className="h-0.5 bg-white/5 shrink-0">
@@ -380,9 +423,9 @@ export default function QuizPage() {
                 <div
                   key={i}
                   className={`w-6 h-2 rounded-full transition-all ${
-                    i < questionIndex
+                    i < displayIndex
                       ? "bg-primary"
-                      : i === questionIndex
+                      : i === displayIndex
                       ? "bg-accent shadow-[0_0_8px_rgba(6,182,212,0.6)]"
                       : "bg-white/10"
                   }`}
@@ -390,7 +433,7 @@ export default function QuizPage() {
               ))}
             </div>
             <p className="text-[10px] text-text-muted mt-1.5">
-              {questionIndex + 1} / {questions.length}
+              {displayIndex + 1} / {questions.length}
             </p>
           </div>
 
@@ -441,7 +484,7 @@ export default function QuizPage() {
           {/* Question header */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <span className="text-xs font-bold text-text-muted uppercase tracking-widest">
-              Question {questionIndex + 1}
+              Question {displayIndex + 1}
             </span>
             <span className="badge bg-primary/20 text-primary border border-primary/30">
               {currentQuestion.points} pts
@@ -476,7 +519,7 @@ export default function QuizPage() {
                 selectedOption={selectedOption}
                 correctIndex={currentQuestion.correctIndex}
                 onSelect={submitAnswer}
-                disabled={phase !== "question"}
+                disabled={phase !== "question" || postCountdown > 0}
               />
             ))}
           </div>
