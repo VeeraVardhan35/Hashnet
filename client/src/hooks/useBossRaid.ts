@@ -171,7 +171,8 @@ export function useBossRaid() {
     finalResult:      useBossRaidStore((s) => s.finalResult),
     submissionHistory: useBossRaidStore((s) => s.submissionHistory),
     language:         useBossRaidStore((s) => s.language),
-    code:             useBossRaidStore((s) => s.code),
+    body:             useBossRaidStore((s) => s.body),
+    fullTemplate:     useBossRaidStore((s) => s.fullTemplate),
     activeTab:        useBossRaidStore((s) => s.activeTab),
     myEntry:          useBossRaidStore((s) => s.myEntry),
     runCode,
@@ -179,6 +180,6 @@ export function useBossRaid() {
     leaveRoom,
     setActiveTab:    useBossRaidStore.getState().setActiveTab,
     setLanguage:     useBossRaidStore.getState().setLanguage,
-    setCode:         useBossRaidStore.getState().setCode,
+    setBody:         useBossRaidStore.getState().setBody,
   };
 }

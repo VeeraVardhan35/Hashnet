@@ -11,6 +11,7 @@ export interface Player {
   username: string;
   ready: boolean;
   isHost: boolean;
+  preferredTeam?: "alpha" | "beta" | "";
 }
 
 export interface AuthResponse {
@@ -90,9 +91,9 @@ export interface BattlePlayerEntry {
 export interface BattleLiveEvent {
   id: string;
   username: string;
-  type: "accepted" | "eliminated";
+  type: "accepted" | "eliminated" | "system" | "wrong_answer" | "runtime_error";
   message: string;
-  color: "green" | "red";
+  color: "green" | "red" | "amber" | "purple";
   timestamp: number;
 }
 

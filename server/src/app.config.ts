@@ -13,6 +13,8 @@ import { QuizRoom } from "./rooms/QuizRoom.js";
 import { BattleRoom } from "./rooms/BattleRoom.js";
 import { TeamsRoom } from "./rooms/TeamsRoom.js";
 import { BossRaidRoom } from "./rooms/BossRaidRoom.js";
+import { QuizTeamsRoom } from "./rooms/QuizTeamsRoom.js";
+import { QuizBossRaidRoom } from "./rooms/QuizBossRaidRoom.js";
 
 /**
  * Creates and configures the Colyseus + Express app for colyseus@0.16.
@@ -61,6 +63,8 @@ export function createApp() {
     gameServer.define("battle", BattleRoom);
     gameServer.define("teams", TeamsRoom);
     gameServer.define("boss_raid", BossRaidRoom);
+    gameServer.define("quiz_teams", QuizTeamsRoom);
+    gameServer.define("quiz_boss_raid", QuizBossRaidRoom);
 
     return { httpServer, gameServer };
 }

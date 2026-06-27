@@ -254,7 +254,8 @@ export default function CodeEditor({
             hideCursorInOverviewRuler: true,
             readOnly: isEliminated,
             // Highlight the editable area with a subtle background
-            renderIndentGuides: true,
+            // guide lines now use renderValidationDecorations option
+            guides: { indentation: true },
           }}
         />
       </div>

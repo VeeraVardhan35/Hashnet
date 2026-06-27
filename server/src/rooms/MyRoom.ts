@@ -12,7 +12,7 @@ export class MyRoom extends Room<LobbyState> {
 
             this.setState(new LobbyState());
             this.state.roomCode = generateRoomCode();
-            const validModes = ["quiz", "battle", "teams", "boss_raid"];
+            const validModes = ["quiz", "battle", "teams", "boss_raid", "quiz_teams", "quiz_boss_raid"];
             this.state.gameMode = validModes.includes(options?.gameMode ?? "")
                 ? (options!.gameMode as string)
                 : "quiz";
@@ -32,6 +32,15 @@ export class MyRoom extends Room<LobbyState> {
                 console.log(
                     `[MyRoom] ${player.username} ready: ${player.ready}`
                 );
+            });
+
+            // ── Pick Team (quiz_teams mode) ────────────────────────────────
+            this.onMessage("pickTeam", (client: Client, data: { team: "alpha" | "beta" }) => {
+                const player = this.state.players.get(client.sessionId);
+                if (!player) return;
+                if (data.team === "alpha" || data.team === "beta") {
+                    player.preferredTeam = data.team;
+                }
             });
 
             // ── Start Game ─────────────────────────────────────────────────
@@ -62,6 +71,8 @@ export class MyRoom extends Room<LobbyState> {
                 const roomName = gameMode === "battle" ? "battle"
                     : gameMode === "teams" ? "teams"
                     : gameMode === "boss_raid" ? "boss_raid"
+                    : gameMode === "quiz_teams" ? "quiz_teams"
+                    : gameMode === "quiz_boss_raid" ? "quiz_boss_raid"
                     : "quiz";
 
                 const seat = await matchMaker.createRoom(roomName, {
@@ -79,6 +90,12 @@ export class MyRoom extends Room<LobbyState> {
                 } else if (gameMode === "boss_raid") {
                     console.log("[MyRoom] Boss Raid started! BossRaidRoom:", seat.roomId);
                     this.broadcast("gameStarted", { bossRaidRoomId: seat.roomId });
+                } else if (gameMode === "quiz_teams") {
+                    console.log("[MyRoom] Quiz Teams started! QuizTeamsRoom:", seat.roomId);
+                    this.broadcast("gameStarted", { quizTeamsRoomId: seat.roomId });
+                } else if (gameMode === "quiz_boss_raid") {
+                    console.log("[MyRoom] Quiz Boss Raid started! QuizBossRaidRoom:", seat.roomId);
+                    this.broadcast("gameStarted", { quizBossRaidRoomId: seat.roomId });
                 } else {
                     console.log("[MyRoom] Quiz started! QuizRoom:", seat.roomId);
                     this.broadcast("gameStarted", { quizRoomId: seat.roomId });

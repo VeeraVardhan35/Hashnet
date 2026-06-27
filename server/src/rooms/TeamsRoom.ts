@@ -113,7 +113,9 @@ export class TeamsRoom extends Room<TeamsState> {
                 const allPassed = results.every((r) => r.passed);
                 const failedResult = results.find((r) => !r.passed);
                 const verdict = allPassed ? "accepted" : (failedResult?.verdict ?? "wrong_answer");
-                const details = failedResult?.stderr ?? "";
+                const details = failedResult?.verdict === "wrong_answer"
+                    ? `Expected: ${failedResult.expectedOutput}\nGot: ${failedResult.actualOutput}`
+                    : failedResult?.stderr?.slice(0, 300) ?? "";
                 player.submissionStatus = verdict;
 
                 if (verdict === "accepted") {

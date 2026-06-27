@@ -170,7 +170,9 @@ export class BossRaidRoom extends Room<BossRaidState> {
                 const allPassed  = results.every((r) => r.passed);
                 const failedRes  = results.find((r) => !r.passed);
                 const verdict    = allPassed ? "accepted" : (failedRes?.verdict ?? "wrong_answer");
-                const details    = failedRes?.stderr ?? "";
+                const details    = failedRes?.verdict === "wrong_answer"
+                    ? `Expected: ${failedRes.expectedOutput}\nGot: ${failedRes.actualOutput}`
+                    : failedRes?.stderr?.slice(0, 300) ?? "";
                 player.submissionStatus = verdict;
 
                 if (verdict === "accepted") {

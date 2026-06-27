@@ -107,7 +107,7 @@ const initialState = {
   submissionHistory: [],
 };
 
-export const useBattleStore = create<BattleState>((set) => ({
+export const useBattleStore = create<BattleState>((set, get) => ({
   ...initialState,
 
   setBattleRoom: (battleRoom) => set({ battleRoom }),
@@ -156,8 +156,9 @@ export const useBattleStore = create<BattleState>((set) => ({
     })),
 
   getFullCode: () => {
-    const s = useBattleStore.getState();
-    return assembleCode(splitTemplate(s.fullTemplate, s.language).prefix, s.body, splitTemplate(s.fullTemplate, s.language).suffix, s.language);
+    const s = get();
+    const split = splitTemplate(s.fullTemplate, s.language);
+    return assembleCode(split.prefix, s.body, split.suffix, s.language);
   },
 
   reset: () => set(initialState),

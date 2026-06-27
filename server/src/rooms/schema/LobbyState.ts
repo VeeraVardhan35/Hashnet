@@ -16,6 +16,10 @@ export class Player extends Schema {
 
     @type("boolean")
     isHost = false;
+
+    /** "alpha" | "beta" | "" — set by player in lobby for team modes */
+    @type("string")
+    preferredTeam = "";
 }
 
 export class LobbyState extends Schema {

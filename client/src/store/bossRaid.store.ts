@@ -88,7 +88,7 @@ const initial: Partial<BossRaidStore> = {
   language: "python", fullTemplate: "", body: "", activeTab: "problem", myEntry: null,
 };
 
-export const useBossRaidStore = create<BossRaidStore>((set) => ({
+export const useBossRaidStore = create<BossRaidStore>((set, get) => ({
   ...(initial as BossRaidStore),
   setProblem: (problem) => set({ problem }),
   setPhase: (phase) => set({ phase }),
@@ -121,7 +121,7 @@ export const useBossRaidStore = create<BossRaidStore>((set) => ({
   setBody: (body) => set({ body }),
   setActiveTab: (activeTab) => set({ activeTab }),
   getFullCode: () => {
-    const s = useBossRaidStore.getState();
+    const s = get();
     const sp = splitTemplate(s.fullTemplate, s.language);
     return assembleCode(sp.prefix, s.body, sp.suffix, s.language);
   },
