@@ -23,6 +23,7 @@ export function useRoom() {
     room, roomCode, players, connected, gameStarted,
     setRoom, setPlayers, setRoomCode, setConnected, setGameStarted,
     setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId,
+    setQuizTeamsRoomId, setQuizBossRaidRoomId,
     setGameMode, reset,
   } = useRoomStore();
 
@@ -49,6 +50,7 @@ export function useRoom() {
           username: p.username,
           ready: p.ready,
           isHost: p.isHost,
+          preferredTeam: p.preferredTeam ?? "",
         }));
 
         setPlayers(arr);
@@ -56,20 +58,34 @@ export function useRoom() {
 
       newRoom.onMessage(
         "gameStarted",
-        (data: { quizRoomId?: string; battleRoomId?: string; teamsRoomId?: string; bossRaidRoomId?: string }) => {
+        (data: {
+          quizRoomId?: string;
+          battleRoomId?: string;
+          teamsRoomId?: string;
+          bossRaidRoomId?: string;
+          quizTeamsRoomId?: string;
+          quizBossRaidRoomId?: string;
+        }) => {
           setGameStarted(true);
-          if (data.quizRoomId) {
-            setQuizRoomId(data.quizRoomId);
-            navigate("/quiz");
-          } else if (data.battleRoomId) {
+
+          if (data.battleRoomId) {
             setBattleRoomId(data.battleRoomId);
-            navigate("/battle");
+            setTimeout(() => navigate("/battle"), 300);
           } else if (data.teamsRoomId) {
             setTeamsRoomId(data.teamsRoomId);
-            navigate("/teams");
+            setTimeout(() => navigate("/teams"), 300);
           } else if (data.bossRaidRoomId) {
             setBossRaidRoomId(data.bossRaidRoomId);
-            navigate("/boss-raid");
+            setTimeout(() => navigate("/boss-raid"), 300);
+          } else if (data.quizTeamsRoomId) {
+            setQuizTeamsRoomId(data.quizTeamsRoomId);
+            setTimeout(() => navigate("/quiz-teams"), 300);
+          } else if (data.quizBossRaidRoomId) {
+            setQuizBossRaidRoomId(data.quizBossRaidRoomId);
+            setTimeout(() => navigate("/quiz-boss-raid"), 300);
+          } else if (data.quizRoomId) {
+            setQuizRoomId(data.quizRoomId);
+            setTimeout(() => navigate("/quiz"), 300);
           }
         }
       );
@@ -131,6 +147,20 @@ export function useRoom() {
     setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
+  // ── Create Quiz Teams Room (host) ──────────────────────────────────
+  const createQuizTeamsRoom = useCallback(async () => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "quiz_teams" });
+    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
+  // ── Create Quiz Boss Raid Room (host) ──────────────────────────────
+  const createQuizBossRaidRoom = useCallback(async () => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "quiz_boss_raid" });
+    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
   const joinRoom = useCallback(
     async (code: string) => {
       if (!user) throw new Error("Not authenticated");
@@ -165,6 +195,10 @@ export function useRoom() {
     roomRef.current?.send("toggleReady");
   }, []);
 
+  const pickTeam = useCallback((team: "alpha" | "beta") => {
+    roomRef.current?.send("pickTeam", { team });
+  }, []);
+
   const startGame = useCallback(() => {
     roomRef.current?.send("startGame");
   }, []);
@@ -178,7 +212,12 @@ export function useRoom() {
 
   return {
     room, roomCode, players, connected, gameStarted,
-    createRoom, createBattleRoom, createTeamsRoom, createBossRaidRoom,
-    joinRoom, toggleReady, startGame, leaveRoom,
+    createRoom,
+    createBattleRoom,
+    createTeamsRoom,
+    createBossRaidRoom,
+    createQuizTeamsRoom,
+    createQuizBossRaidRoom,
+    joinRoom, toggleReady, pickTeam, startGame, leaveRoom,
   };
 }

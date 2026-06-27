@@ -74,8 +74,8 @@ const initial = {
   language: "python" as const, fullTemplate: "", body: "", activeTab: "problem" as const,
 };
 
-export const useTeamsStore = create<TeamsStore>((set) => ({
-  ...initial,
+export const useTeamsStore = create<TeamsStore>((set, get) => ({
+  ...(initial as any),
   setProblem: (problem) => {
     const template = problem.templates?.python ?? "";
     const { body } = splitTemplate(template, "python");
@@ -111,7 +111,7 @@ export const useTeamsStore = create<TeamsStore>((set) => ({
   setBody: (body) => set({ body }),
   setActiveTab: (activeTab) => set({ activeTab }),
   getFullCode: () => {
-    const s = useTeamsStore.getState();
+    const s = get();
     const sp = splitTemplate(s.fullTemplate, s.language);
     return assembleCode(sp.prefix, s.body, sp.suffix, s.language);
   },

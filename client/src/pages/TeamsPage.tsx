@@ -336,14 +336,22 @@ export default function TeamsPage() {
             )}
           </div>
 
-          {/* Run results */}
+          {/* Run Results */}
           {runResults.length > 0 && (
-            <div className="shrink-0 border-t border-white/8 p-4 bg-bg-surface/20 max-h-40 overflow-y-auto">
-              <p className="text-[10px] font-bold text-text-muted uppercase mb-2">Test Results</p>
-              <div className="flex gap-2 flex-wrap">
+            <div className="shrink-0 border-t border-white/8 p-4 bg-bg-surface/20 max-h-48 overflow-y-auto">
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Run Results</p>
+              <div className="space-y-2">
                 {runResults.map((r, i) => (
-                  <div key={i} className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${r.passed ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"}`}>
-                    Case {i + 1}: {r.passed ? "✓ Pass" : `✗ ${r.verdict?.replace(/_/g, " ") ?? "Fail"}`}
+                  <div key={i} className={`glass-card p-3 rounded-xl border text-xs font-mono ${r.passed ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`font-bold ${r.passed ? "text-emerald-400" : "text-red-400"}`}>
+                        {r.passed ? "✓ Passed" : "✗ Failed"} — Case {i + 1}
+                      </span>
+                    </div>
+                    <p className="text-text-muted">Input: <span className="text-text-primary">{r.input}</span></p>
+                    <p className="text-text-muted">Expected: <span className="text-emerald-400">{r.expectedOutput}</span></p>
+                    <p className="text-text-muted">Got: <span className={r.passed ? "text-text-primary" : "text-red-400"}>{r.actualOutput || "(empty)"}</span></p>
+                    {r.stderr && <p className="text-orange-400 mt-1 whitespace-pre-wrap">{r.stderr.slice(0, 200)}</p>}
                   </div>
                 ))}
               </div>

@@ -13,10 +13,12 @@ export default function LobbyPage() {
   const gameMode = useRoomStore((s) => s.gameMode);
 
   const MODE_META: Record<string, { label: string; icon: string; color: string }> = {
-    quiz:      { label: "Quiz Battle",   icon: "🧠", color: "text-violet-400" },
-    battle:    { label: "Battle Royale", icon: "⚡", color: "text-red-400" },
-    teams:     { label: "Teams Mode",    icon: "⚔️", color: "text-emerald-400" },
-    boss_raid: { label: "Boss Raid",     icon: "👾", color: "text-purple-400" },
+    quiz:           { label: "Quiz Battle",    icon: "🧠",   color: "text-violet-400" },
+    battle:         { label: "Battle Royale",  icon: "⚡",   color: "text-red-400" },
+    teams:          { label: "Teams Mode",     icon: "⚔️",   color: "text-emerald-400" },
+    boss_raid:      { label: "Code Boss Raid", icon: "👾",   color: "text-purple-400" },
+    quiz_teams:     { label: "Quiz Teams",     icon: "🧠⚔️", color: "text-teal-400" },
+    quiz_boss_raid: { label: "Quiz Boss Raid", icon: "🧠👾", color: "text-fuchsia-400" },
   };
   const meta = MODE_META[gameMode] ?? { label: "Game Mode", icon: "🎮", color: "text-accent" };
 
@@ -26,6 +28,7 @@ export default function LobbyPage() {
     connected,
     gameStarted,
     toggleReady,
+    pickTeam,
     startGame,
     leaveRoom,
   } = useRoom();
@@ -41,8 +44,18 @@ export default function LobbyPage() {
   const myPlayer = players.find((p) => p.id === room?.sessionId);
   const isHost = myPlayer?.isHost ?? false;
   const isReady = myPlayer?.ready ?? false;
+  const myTeam = myPlayer?.preferredTeam ?? "";
   const readyCount = players.filter((p) => p.ready).length;
-  const canStart = players.length >= 2 && readyCount === players.length;
+
+  // Team mode helpers — must be defined before canStart
+  const isTeamMode = gameMode === "quiz_teams";
+  const alphaCount = players.filter((p) => p.preferredTeam === "alpha").length;
+  const betaCount  = players.filter((p) => p.preferredTeam === "beta").length;
+  const unpickedCount = players.filter((p) => !p.preferredTeam).length;
+
+  const canStart = isTeamMode
+    ? players.length >= 2 && readyCount === players.length && alphaCount >= 1 && betaCount >= 1
+    : players.length >= 2 && readyCount === players.length;
 
   if (!room) return null;
 
@@ -134,7 +147,7 @@ export default function LobbyPage() {
           {/* Mode-specific info card */}
           {gameMode === "boss_raid" && !gameStarted && (
             <div className="glass-card p-4 border-purple-500/20 bg-purple-500/5">
-              <p className="text-xs font-bold text-purple-400 mb-1">👾 Boss Raid Mode</p>
+              <p className="text-xs font-bold text-purple-400 mb-1">👾 Code Boss Raid</p>
               <p className="text-[11px] text-text-muted leading-relaxed">
                 All players co-op against an AI boss. Roles (DPS/Tank/Support) assigned on join.
                 Solve problems → deal damage. Stay alive to win!
@@ -146,6 +159,67 @@ export default function LobbyPage() {
               <p className="text-xs font-bold text-emerald-400 mb-1">⚔️ Teams Mode</p>
               <p className="text-[11px] text-text-muted leading-relaxed">
                 Players split into Alpha &amp; Beta teams automatically. Highest combined team score wins!
+              </p>
+            </div>
+          )}
+          {/* Team picker — quiz_teams mode only */}
+          {isTeamMode && !gameStarted && (
+            <div className="glass-card p-5 border-teal-500/20 bg-teal-500/5">
+              <p className="text-xs font-bold text-teal-400 mb-3 uppercase tracking-widest">Pick Your Team</p>
+
+              {/* Team distribution */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="flex flex-col items-center p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-xl mb-1">🟢</span>
+                  <p className="text-xs font-black text-emerald-400">ALPHA</p>
+                  <p className="text-2xl font-black text-emerald-400">{alphaCount}</p>
+                  <p className="text-[10px] text-text-muted">players</p>
+                </div>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                  <span className="text-xl mb-1">🟠</span>
+                  <p className="text-xs font-black text-orange-400">BETA</p>
+                  <p className="text-2xl font-black text-orange-400">{betaCount}</p>
+                  <p className="text-[10px] text-text-muted">players</p>
+                </div>
+              </div>
+
+              {unpickedCount > 0 && (
+                <p className="text-[11px] text-amber-400 text-center mb-3">
+                  ⚠ {unpickedCount} player{unpickedCount > 1 ? "s" : ""} haven't picked a team
+                </p>
+              )}
+
+              {/* My team pick buttons */}
+              <p className="text-[10px] text-text-muted uppercase tracking-widest mb-2">Your team</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => pickTeam("alpha")}
+                  className={`py-3 rounded-xl font-black text-sm border transition-all ${
+                    myTeam === "alpha"
+                      ? "bg-emerald-500/30 border-emerald-500 text-emerald-400 shadow-lg"
+                      : "bg-emerald-500/5 border-emerald-500/20 text-emerald-400/60 hover:bg-emerald-500/15 hover:border-emerald-500/40"
+                  }`}
+                >
+                  {myTeam === "alpha" ? "✓ " : ""}Alpha
+                </button>
+                <button
+                  onClick={() => pickTeam("beta")}
+                  className={`py-3 rounded-xl font-black text-sm border transition-all ${
+                    myTeam === "beta"
+                      ? "bg-orange-500/30 border-orange-500 text-orange-400 shadow-lg"
+                      : "bg-orange-500/5 border-orange-500/20 text-orange-400/60 hover:bg-orange-500/15 hover:border-orange-500/40"
+                  }`}
+                >
+                  {myTeam === "beta" ? "✓ " : ""}Beta
+                </button>
+              </div>
+            </div>
+          )}
+          {gameMode === "quiz_boss_raid" && !gameStarted && (
+            <div className="glass-card p-4 border-fuchsia-500/20 bg-fuchsia-500/5">
+              <p className="text-xs font-bold text-fuchsia-400 mb-1">🧠👾 Quiz Boss Raid</p>
+              <p className="text-[11px] text-text-muted leading-relaxed">
+                Work together to answer trivia questions and damage the boss before it wipes your party!
               </p>
             </div>
           )}
@@ -175,11 +249,26 @@ export default function LobbyPage() {
               </div>
             ) : (
               players.map((player) => (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  mySessionId={room?.sessionId}
-                />
+                <div key={player.id} className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <PlayerCard
+                      player={player}
+                      mySessionId={room?.sessionId}
+                    />
+                  </div>
+                  {/* Team badge — quiz_teams only */}
+                  {isTeamMode && (
+                    <div className={`shrink-0 w-14 text-center text-[11px] font-black py-1.5 rounded-lg border ${
+                      player.preferredTeam === "alpha" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                      : player.preferredTeam === "beta"  ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                      : "bg-white/5 text-text-muted border-white/10"
+                    }`}>
+                      {player.preferredTeam === "alpha" ? "Alpha"
+                        : player.preferredTeam === "beta" ? "Beta"
+                        : "—"}
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </div>
@@ -214,6 +303,13 @@ export default function LobbyPage() {
                 </>
               )}
             </button>
+
+            {/* canStart hint for team mode */}
+            {isTeamMode && !canStart && players.length >= 2 && readyCount === players.length && (
+              <p className="text-xs text-amber-400 text-center">
+                ⚠ Both teams need at least 1 player
+              </p>
+            )}
 
             {/* Start Game — host only */}
             {isHost && (

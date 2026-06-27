@@ -9,6 +9,8 @@ import QuizPage from "./pages/QuizPage";
 import BattlePage from "./pages/BattlePage";
 import TeamsPage from "./pages/TeamsPage";
 import BossRaidPage from "./pages/BossRaidPage";
+import QuizTeamsPage from "./pages/QuizTeamsPage";
+import QuizBossRaidPage from "./pages/QuizBossRaidPage";
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
           <Route path="/battle" element={<BattlePage />} />
           <Route path="/teams" element={<TeamsPage />} />
           <Route path="/boss-raid" element={<BossRaidPage />} />
+          <Route path="/quiz-teams" element={<QuizTeamsPage />} />
+          <Route path="/quiz-boss-raid" element={<QuizBossRaidPage />} />
         </Route>
 
         {/* Fallback */}

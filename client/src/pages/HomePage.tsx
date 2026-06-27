@@ -7,7 +7,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const { createRoom, joinRoom, createBattleRoom, createTeamsRoom, createBossRaidRoom } = useRoom();
+  const { createRoom, joinRoom, createBattleRoom, createTeamsRoom, createBossRaidRoom, createQuizTeamsRoom, createQuizBossRaidRoom } = useRoom();
 
   const [joinCode, setJoinCode] = useState("");
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -21,6 +21,8 @@ export default function HomePage() {
       else if (mode === "battle") await createBattleRoom();
       else if (mode === "teams") await createTeamsRoom();
       else if (mode === "boss_raid") await createBossRaidRoom();
+      else if (mode === "quiz_teams") await createQuizTeamsRoom();
+      else if (mode === "quiz_boss_raid") await createQuizBossRaidRoom();
     } catch (err) {
       console.error("Failed to create room:", err);
     } finally {
@@ -79,12 +81,34 @@ export default function HomePage() {
     {
       id: "boss_raid",
       icon: "👾",
-      title: "Boss Raid",
-      desc: "All players cooperate against an AI boss. Solve problems to deal damage. Survive boss attacks across 3 waves.",
-      gradient: "from-purple-700 to-red-700",
+      title: "Code Boss Raid",
+      desc: "Co-op coding. Solve problems to deal damage and defeat the AI boss together.",
+      gradient: "from-purple-600 to-fuchsia-600",
       glow: "rgba(168,85,247,0.3)",
       glowHover: "rgba(168,85,247,0.55)",
-      badge: "Co-op PvE",
+      badge: "Up to 8 players",
+      new: true,
+    },
+    {
+      id: "quiz_teams",
+      icon: "🧠⚔️",
+      title: "Quiz Teams",
+      desc: "Split into Alpha & Beta. Answer MCQs rapidly to boost your team's score.",
+      gradient: "from-teal-500 to-emerald-600",
+      glow: "rgba(16,185,129,0.3)",
+      glowHover: "rgba(16,185,129,0.55)",
+      badge: "Even teams",
+      new: true,
+    },
+    {
+      id: "quiz_boss_raid",
+      icon: "🧠👾",
+      title: "Quiz Boss Raid",
+      desc: "Co-op trivia. Answer questions quickly to damage the AI boss before it attacks you.",
+      gradient: "from-fuchsia-600 to-pink-600",
+      glow: "rgba(236,72,153,0.3)",
+      glowHover: "rgba(236,72,153,0.55)",
+      badge: "Up to 8 players",
       new: true,
     },
   ];

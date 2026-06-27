@@ -158,7 +158,7 @@ export function useQuiz() {
           console.log("[useQuiz] Disconnected from quiz room");
         });
 
-        room.onError((code: number, msg: string) => {
+        room.onError((code: number, msg?: string) => {
           console.error("[useQuiz] Error:", code, msg);
         });
       } catch (err) {
