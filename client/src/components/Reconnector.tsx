@@ -8,13 +8,13 @@ import toast from "react-hot-toast";
 export default function Reconnector({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isHydrated } = useAuthStore();
+  const { user } = useAuthStore();
   const roomStore = useRoomStore();
   const attemptedRef = useRef(false);
 
   useEffect(() => {
-    // Only attempt once per session load, and only when auth is hydrated
-    if (attemptedRef.current || !isHydrated || !user) return;
+    // Only attempt once per session load
+    if (attemptedRef.current || !user) return;
     
     const token = localStorage.getItem("hashnet_reconnect_token");
     if (!token) {
@@ -37,29 +37,29 @@ export default function Reconnector({ children }: { children: React.ReactNode })
         
         // Setup room store based on the room type
         roomStore.setConnected(true);
-        roomStore.setRoomCode(room.id); // fallback
+        roomStore.setRoomCode(room.roomId); // fallback
         
         if (room.name === "lobby") {
             // Note: The lobby logic usually expects `roomStore.room` to be set.
             // But if we're jumping straight into the lobby, we might need a small workaround or let useRoom handle it.
             navigate("/lobby");
         } else if (room.name === "battle") {
-            roomStore.setBattleRoomId(room.id);
+            roomStore.setBattleRoomId(room.roomId);
             navigate("/battle");
         } else if (room.name === "teams") {
-            roomStore.setTeamsRoomId(room.id);
+            roomStore.setTeamsRoomId(room.roomId);
             navigate("/teams");
         } else if (room.name === "boss_raid") {
-            roomStore.setBossRaidRoomId(room.id);
+            roomStore.setBossRaidRoomId(room.roomId);
             navigate("/boss-raid");
         } else if (room.name === "quiz") {
-            roomStore.setQuizRoomId(room.id);
+            roomStore.setQuizRoomId(room.roomId);
             navigate("/quiz");
         } else if (room.name === "quiz_teams") {
-            roomStore.setQuizTeamsRoomId(room.id);
+            roomStore.setQuizTeamsRoomId(room.roomId);
             navigate("/quiz-teams");
         } else if (room.name === "quiz_boss_raid") {
-            roomStore.setQuizBossRaidRoomId(room.id);
+            roomStore.setQuizBossRaidRoomId(room.roomId);
             navigate("/quiz-boss-raid");
         }
         
@@ -73,7 +73,7 @@ export default function Reconnector({ children }: { children: React.ReactNode })
         }
       }
     })();
-  }, [user, isHydrated, navigate, location.pathname, roomStore]);
+  }, [user, navigate, location.pathname, roomStore]);
 
   return <>{children}</>;
 }

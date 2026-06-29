@@ -188,8 +188,11 @@ export default function CreateRoomPage() {
               <div className="space-y-4">
                 {CATEGORIES[category].map((m) => {
                   const isSelected = mode === m.id;
-                  const activeColor = category === 'quiz' ? 'violet-500' : 'emerald-500';
-                  const activeBg = category === 'quiz' ? 'bg-violet-500/10' : 'bg-emerald-500/10';
+                  const activeClasses = category === 'quiz' 
+                    ? 'bg-violet-500/10 border-violet-500/50 shadow-[0_0_20px_-5px_rgba(139,92,246,0.2)]' 
+                    : 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]';
+                  const activeBorder = category === 'quiz' ? 'border-violet-500' : 'border-emerald-500';
+                  const activeDotBg = category === 'quiz' ? 'bg-violet-500' : 'bg-emerald-500';
                   
                   return (
                     <div key={m.id} className="relative">
@@ -197,7 +200,7 @@ export default function CreateRoomPage() {
                         onClick={() => setMode(m.id)}
                         className={`w-full text-left p-5 rounded-2xl border transition-all flex items-center gap-5 group ${
                           isSelected 
-                            ? `${activeBg} border-${activeColor}/50 shadow-[0_0_20px_-5px_rgba(var(--${activeColor}),0.2)]` 
+                            ? activeClasses
                             : "border-white/5 bg-[#010103] hover:bg-white/5 hover:border-white/20"
                         }`}
                       >
@@ -212,9 +215,9 @@ export default function CreateRoomPage() {
                         </div>
                         {/* Radio dot */}
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          isSelected ? `border-${activeColor}` : "border-gray-600 group-hover:border-gray-400"
+                          isSelected ? activeBorder : "border-gray-600 group-hover:border-gray-400"
                         }`}>
-                          {isSelected && <div className={`w-3 h-3 rounded-full bg-${activeColor}`} />}
+                          {isSelected && <div className={`w-3 h-3 rounded-full ${activeDotBg}`} />}
                         </div>
                       </button>
                       {/* Rules link */}
