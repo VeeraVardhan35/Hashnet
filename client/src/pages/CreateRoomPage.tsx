@@ -117,17 +117,17 @@ export default function CreateRoomPage() {
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden relative z-10 p-8 gap-8 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative z-10 p-4 sm:p-8 gap-8 max-w-[1600px] mx-auto w-full custom-scrollbar">
         
         {/* LEFT COLUMN: Mode Selection & Settings */}
-        <div className="flex-1 overflow-y-auto pr-4 space-y-8 pb-12 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto lg:pr-4 space-y-8 pb-4 lg:pb-12 custom-scrollbar">
           
           {/* Top Banner specific to category */}
           {category === "quiz" ? (
             <div className="rounded-3xl border border-violet-500/30 bg-[#120a1c] p-8 relative overflow-hidden shadow-[0_0_30px_-5px_rgba(139,92,246,0.15)]">
               <div className="absolute top-0 right-0 w-64 h-64 bg-violet-600/20 blur-[80px] rounded-full pointer-events-none" />
-              <div className="relative z-10 flex items-center gap-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-4xl shadow-lg shadow-violet-600/30">
+              <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex shrink-0 items-center justify-center text-3xl sm:text-4xl shadow-lg shadow-violet-600/30">
                   🧠
                 </div>
                 <div>
@@ -141,8 +141,8 @@ export default function CreateRoomPage() {
           ) : (
             <div className="rounded-3xl border border-emerald-500/30 bg-[#0a1a14] p-8 relative overflow-hidden shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]">
               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/20 blur-[80px] rounded-full pointer-events-none" />
-              <div className="relative z-10 flex items-center gap-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/30">
+              <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex shrink-0 items-center justify-center text-3xl sm:text-4xl shadow-lg shadow-emerald-500/30">
                   ⚡
                 </div>
                 <div>
@@ -374,7 +374,7 @@ export default function CreateRoomPage() {
         </div>
 
         {/* RIGHT COLUMN: Preview & Actions */}
-        <div className="w-[380px] shrink-0 flex flex-col gap-6 h-full pb-12">
+        <div className="w-full lg:w-[380px] shrink-0 flex flex-col gap-6 lg:h-full pb-12">
           
           <div className="rounded-3xl border border-white/10 bg-[#12121a] p-6 flex flex-col flex-1 shadow-xl">
             <h3 className="text-lg font-bold text-white mb-6 text-center border-b border-white/5 pb-4">
