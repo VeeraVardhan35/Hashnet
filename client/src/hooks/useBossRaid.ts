@@ -23,6 +23,7 @@ export function useBossRaid() {
       try {
         const room = await gameClient.joinById(bossRaidRoomId, { username: user.username });
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
         store.setConnected(true);
 
         room.onStateChange((state: any) => {
@@ -137,7 +138,9 @@ export function useBossRaid() {
   }, []);
 
   const leaveRoom = useCallback(() => {
-    roomRef.current?.leave();
+    roomRef.current?.send("leaveRoom");
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     store.reset();
     resetRoom();
     navigate("/home");
@@ -171,7 +174,8 @@ export function useBossRaid() {
     finalResult:      useBossRaidStore((s) => s.finalResult),
     submissionHistory: useBossRaidStore((s) => s.submissionHistory),
     language:         useBossRaidStore((s) => s.language),
-    code:             useBossRaidStore((s) => s.code),
+    body:             useBossRaidStore((s) => s.body),
+    fullTemplate:     useBossRaidStore((s) => s.fullTemplate),
     activeTab:        useBossRaidStore((s) => s.activeTab),
     myEntry:          useBossRaidStore((s) => s.myEntry),
     runCode,
@@ -179,6 +183,6 @@ export function useBossRaid() {
     leaveRoom,
     setActiveTab:    useBossRaidStore.getState().setActiveTab,
     setLanguage:     useBossRaidStore.getState().setLanguage,
-    setCode:         useBossRaidStore.getState().setCode,
+    setBody:         useBossRaidStore.getState().setBody,
   };
 }

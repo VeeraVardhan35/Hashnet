@@ -29,7 +29,7 @@ export function useBattle() {
   const {
     battleRoom,
     language,
-    code,
+    body,
     setBattleRoom,
     setProblem,
     setRoundNumber,
@@ -82,6 +82,7 @@ export function useBattle() {
 
         localRoom = room;
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
 
         // ── Register ALL onMessage handlers BEFORE sending "ready" ───────────
         // The server will not push "problem" / "phaseSync" until it receives
@@ -208,7 +209,7 @@ export function useBattle() {
           console.log("[useBattle] Disconnected");
         });
 
-        room.onError((code: number, msg: string) => {
+        room.onError((code: number, msg?: string) => {
           console.error("[useBattle] Room error:", code, msg);
         });
 
@@ -262,11 +263,9 @@ export function useBattle() {
   }, [setIsSubmitting, setLastVerdict]);
 
   const leaveRoom = useCallback(() => {
-    const room = roomRef.current;
-    if (room) {
-      room.leave();
-      roomRef.current = null;
-    }
+    roomRef.current?.send("leaveRoom");
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     reset();
     navigate("/home");
   }, [navigate, reset]);

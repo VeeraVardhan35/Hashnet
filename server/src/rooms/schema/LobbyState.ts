@@ -16,6 +16,10 @@ export class Player extends Schema {
 
     @type("boolean")
     isHost = false;
+
+    /** "alpha" | "beta" | "" — set by player in lobby for team modes */
+    @type("string")
+    preferredTeam = "";
 }
 
 export class LobbyState extends Schema {
@@ -28,6 +32,21 @@ export class LobbyState extends Schema {
     /** "quiz" | "battle" — chosen by the host when creating the lobby */
     @type("string")
     gameMode = "quiz";
+
+    @type("number")
+    bossLevel = 5;
+
+    @type("string")
+    category = "All Categories";
+
+    @type("string")
+    difficulty = "Mixed";
+
+    @type("number")
+    questionsCount = 10;
+
+    @type("number")
+    timePerQuestion = 30;
 
     @type({
         map: Player,

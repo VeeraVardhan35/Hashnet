@@ -49,6 +49,11 @@ export function useQuiz() {
     reset,
   } = useQuizStore();
 
+  // expose a local reset for selected option (UI may need to clear optimistic state)
+  const resetSelectedOption = useCallback(() => {
+    setSelectedOption(-1);
+  }, [setSelectedOption]);
+
   const roomRef = useRef<any>(quizRoom);
   useEffect(() => {
     roomRef.current = quizRoom;
@@ -75,6 +80,7 @@ export function useQuiz() {
 
         setQuizRoom(room);
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
         setConnected(true);
 
         // ── One-shot: receive all questions (with answers) ──────────
@@ -158,7 +164,7 @@ export function useQuiz() {
           console.log("[useQuiz] Disconnected from quiz room");
         });
 
-        room.onError((code: number, msg: string) => {
+        room.onError((code: number, msg?: string) => {
           console.error("[useQuiz] Error:", code, msg);
         });
       } catch (err) {
@@ -200,7 +206,9 @@ export function useQuiz() {
   );
 
   const leaveQuiz = useCallback(() => {
-    roomRef.current?.leave();
+    roomRef.current?.send("leaveRoom");
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     reset();
     navigate("/home");
   }, [navigate, reset]);
@@ -223,6 +231,7 @@ export function useQuiz() {
     finalLeaderboard,
     myEntry,
     submitAnswer,
+    resetSelectedOption,
     leaveQuiz,
   };
 }

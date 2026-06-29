@@ -23,7 +23,8 @@ export function useRoom() {
     room, roomCode, players, connected, gameStarted,
     setRoom, setPlayers, setRoomCode, setConnected, setGameStarted,
     setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId,
-    setGameMode, reset,
+    setQuizTeamsRoomId, setQuizBossRaidRoomId,
+    setGameMode, setBossLevel: setStoreBossLevel, reset,
   } = useRoomStore();
 
   const { user } = useAuthStore();
@@ -41,6 +42,7 @@ export function useRoom() {
         setRoomCode(state.roomCode);
         setGameStarted(state.gameStarted);
         if (state.gameMode) setGameMode(state.gameMode);
+        if (state.bossLevel !== undefined) setStoreBossLevel(state.bossLevel);
 
         const arr: Player[] = Array.from(
           state.players.values() as Iterable<any>
@@ -49,6 +51,7 @@ export function useRoom() {
           username: p.username,
           ready: p.ready,
           isHost: p.isHost,
+          preferredTeam: p.preferredTeam ?? "",
         }));
 
         setPlayers(arr);
@@ -56,20 +59,34 @@ export function useRoom() {
 
       newRoom.onMessage(
         "gameStarted",
-        (data: { quizRoomId?: string; battleRoomId?: string; teamsRoomId?: string; bossRaidRoomId?: string }) => {
+        (data: {
+          quizRoomId?: string;
+          battleRoomId?: string;
+          teamsRoomId?: string;
+          bossRaidRoomId?: string;
+          quizTeamsRoomId?: string;
+          quizBossRaidRoomId?: string;
+        }) => {
           setGameStarted(true);
-          if (data.quizRoomId) {
-            setQuizRoomId(data.quizRoomId);
-            navigate("/quiz");
-          } else if (data.battleRoomId) {
+
+          if (data.battleRoomId) {
             setBattleRoomId(data.battleRoomId);
-            navigate("/battle");
+            setTimeout(() => navigate("/battle"), 300);
           } else if (data.teamsRoomId) {
             setTeamsRoomId(data.teamsRoomId);
-            navigate("/teams");
+            setTimeout(() => navigate("/teams"), 300);
           } else if (data.bossRaidRoomId) {
             setBossRaidRoomId(data.bossRaidRoomId);
-            navigate("/boss-raid");
+            setTimeout(() => navigate("/boss-raid"), 300);
+          } else if (data.quizTeamsRoomId) {
+            setQuizTeamsRoomId(data.quizTeamsRoomId);
+            setTimeout(() => navigate("/quiz-teams"), 300);
+          } else if (data.quizBossRaidRoomId) {
+            setQuizBossRaidRoomId(data.quizBossRaidRoomId);
+            setTimeout(() => navigate("/quiz-boss-raid"), 300);
+          } else if (data.quizRoomId) {
+            setQuizRoomId(data.quizRoomId);
+            setTimeout(() => navigate("/quiz"), 300);
           }
         }
       );
@@ -86,49 +103,79 @@ export function useRoom() {
       setConnected(true);
     },
     [setConnected, setGameStarted, setPlayers, setRoomCode,
-     setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId, setGameMode, navigate]
+     setQuizRoomId, setBattleRoomId, setTeamsRoomId, setBossRaidRoomId, setGameMode, setStoreBossLevel, navigate]
   );
 
   // ── Create Room (host) ─────────────────────────────────────────
-  const createRoom = useCallback(async () => {
+  const createRoom = useCallback(async (options?: any) => {
     if (!user) throw new Error("Not authenticated");
 
     const newRoom = await gameClient.create("lobby", {
       username: user.username,
       gameMode: "quiz",
+      ...options
     });
 
     setRoom(newRoom);
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
     attachListeners(newRoom);
     navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
   // ── Create Battle Room (host) ──────────────────────────────────
-  const createBattleRoom = useCallback(async () => {
+  const createBattleRoom = useCallback(async (options?: any) => {
     if (!user) throw new Error("Not authenticated");
 
     const newRoom = await gameClient.create("lobby", {
       username: user.username,
       gameMode: "battle",
+      ...options
     });
 
     setRoom(newRoom);
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
     attachListeners(newRoom);
     navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
   // ── Create Teams Room (host) ──────────────────────────────────────
-  const createTeamsRoom = useCallback(async () => {
+  const createTeamsRoom = useCallback(async (options?: any) => {
     if (!user) throw new Error("Not authenticated");
-    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "teams" });
-    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "teams", ...options });
+    setRoom(newRoom); 
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
+    attachListeners(newRoom); 
+    navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
   // ── Create Boss Raid Room (host) ─────────────────────────────────
-  const createBossRaidRoom = useCallback(async () => {
+  const createBossRaidRoom = useCallback(async (options?: any) => {
     if (!user) throw new Error("Not authenticated");
-    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "boss_raid" });
-    setRoom(newRoom); attachListeners(newRoom); navigate("/lobby");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "boss_raid", ...options });
+    setRoom(newRoom); 
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
+    attachListeners(newRoom); 
+    navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
+  // ── Create Quiz Teams Room (host) ──────────────────────────────────
+  const createQuizTeamsRoom = useCallback(async (options?: any) => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "quiz_teams", ...options });
+    setRoom(newRoom); 
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
+    attachListeners(newRoom); 
+    navigate("/lobby");
+  }, [attachListeners, navigate, setRoom, user]);
+
+  // ── Create Quiz Boss Raid Room (host) ──────────────────────────────
+  const createQuizBossRaidRoom = useCallback(async (options?: any) => {
+    if (!user) throw new Error("Not authenticated");
+    const newRoom = await gameClient.create("lobby", { username: user.username, gameMode: "quiz_boss_raid", ...options });
+    setRoom(newRoom); 
+    localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
+    attachListeners(newRoom); 
+    navigate("/lobby");
   }, [attachListeners, navigate, setRoom, user]);
 
   const joinRoom = useCallback(
@@ -136,8 +183,9 @@ export function useRoom() {
       if (!user) throw new Error("Not authenticated");
 
       // Ask our server to resolve the human-readable code → Colyseus roomId
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:2567/api";
       const res = await fetch(
-        `http://localhost:2567/api/rooms/find/${code.toUpperCase()}`
+        `${apiUrl}/rooms/find/${code.toUpperCase()}`
       );
 
       if (!res.ok) {
@@ -154,6 +202,7 @@ export function useRoom() {
       });
 
       setRoom(newRoom);
+      localStorage.setItem("hashnet_reconnect_token", newRoom.reconnectionToken);
       attachListeners(newRoom);
       navigate("/lobby");
     },
@@ -165,20 +214,34 @@ export function useRoom() {
     roomRef.current?.send("toggleReady");
   }, []);
 
+  const pickTeam = useCallback((team: "alpha" | "beta") => {
+    roomRef.current?.send("pickTeam", { team });
+  }, []);
+
+  const setBossLevel = useCallback((level: number) => {
+    roomRef.current?.send("setBossLevel", { level });
+  }, []);
+
   const startGame = useCallback(() => {
     roomRef.current?.send("startGame");
   }, []);
 
   const leaveRoom = useCallback(() => {
     roomRef.current?.send("leaveRoom");
-    roomRef.current?.leave();
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     reset();
     navigate("/home");
   }, [navigate, reset]);
 
   return {
     room, roomCode, players, connected, gameStarted,
-    createRoom, createBattleRoom, createTeamsRoom, createBossRaidRoom,
-    joinRoom, toggleReady, startGame, leaveRoom,
+    createRoom,
+    createBattleRoom,
+    createTeamsRoom,
+    createBossRaidRoom,
+    createQuizTeamsRoom,
+    createQuizBossRaidRoom,
+    joinRoom, toggleReady, pickTeam, setBossLevel, startGame, leaveRoom,
   };
 }

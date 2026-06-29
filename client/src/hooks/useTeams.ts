@@ -10,6 +10,7 @@ export function useTeams() {
   const navigate      = useNavigate();
   const user          = useAuthStore((s) => s.user);
   const teamsRoomId   = useRoomStore((s) => s.teamsRoomId);
+  const lobbyPlayers  = useRoomStore((s) => s.players);
   const resetRoom     = useRoomStore((s) => s.reset);
   const store         = useTeamsStore();
   const roomRef       = useRef<any>(null);
@@ -22,8 +23,15 @@ export function useTeams() {
 
     (async () => {
       try {
-        const room = await gameClient.joinById(teamsRoomId, { username: user.username });
+        const myLobbyPlayer = lobbyPlayers.find((p) => p.username === user.username);
+        const preferredTeam = myLobbyPlayer?.preferredTeam ?? "";
+
+        const room = await gameClient.joinById(teamsRoomId, { 
+          username: user.username,
+          preferredTeam: preferredTeam || undefined,
+        });
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
         store.setConnected(true);
 
         // Register all listeners BEFORE sending ready
@@ -130,7 +138,9 @@ export function useTeams() {
   }, []);
 
   const leaveRoom = useCallback(() => {
-    roomRef.current?.leave();
+    roomRef.current?.send("leaveRoom");
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     store.reset();
     resetRoom();
     navigate("/home");
@@ -160,7 +170,8 @@ export function useTeams() {
     finalResult:     useTeamsStore((s) => s.finalResult),
     submissionHistory: useTeamsStore((s) => s.submissionHistory),
     language:        useTeamsStore((s) => s.language),
-    code:            useTeamsStore((s) => s.code),
+    body:            useTeamsStore((s) => s.body),
+    fullTemplate:    useTeamsStore((s) => s.fullTemplate),
     activeTab:       useTeamsStore((s) => s.activeTab),
     runCode,
     submitCode,

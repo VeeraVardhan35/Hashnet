@@ -30,21 +30,32 @@ export class QuizRoom extends Room<QuizState> {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    async onCreate(options: { lobbyRoomCode?: string }) {
+    async onCreate(options: any) {
         this.setState(new QuizState());
 
         this.state.roomCode = options?.lobbyRoomCode ?? generateRoomCode();
-        this.state.totalQuestions = QUESTION_COUNT;
-        this.state.roundDuration = ROUND_DURATION_SECS;
+        
+        const qCount = options?.questionsCount ?? QUESTION_COUNT;
+        this.state.totalQuestions = qCount;
+        this.state.roundDuration = options?.timePerQuestion ?? ROUND_DURATION_SECS;
 
         await this.setMetadata({ roomCode: this.state.roomCode });
 
         console.log("[QuizRoom] Created, code:", this.state.roomCode);
 
-        // Load random questions from DB
-        const docs = await QuestionModel.aggregate([
-            { $sample: { size: QUESTION_COUNT } },
+        // Load random questions from DB matching filters
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.category = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await QuestionModel.aggregate([
+            { $match: filter },
+            { $sample: { size: qCount } },
         ]);
+
+        if (docs.length === 0) {
+            docs = await QuestionModel.aggregate([{ $sample: { size: qCount } }]);
+        }
 
         this.questions = docs.map((d) => ({
             text: d.text,
@@ -151,18 +162,25 @@ export class QuizRoom extends Room<QuizState> {
         );
     }
 
-    onLeave(client: Client) {
+    async onLeave(client: Client, consented: boolean) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
 
-        const wasHost = player.isHost;
-        this.state.players.delete(client.sessionId);
+        console.log(`[QuizRoom] ${player.username} disconnected. Waiting for reconnection...`);
 
-        console.log(`[QuizRoom] ${player.username} left`);
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[QuizRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            const wasHost = player.isHost;
+            this.state.players.delete(client.sessionId);
+            console.log(`[QuizRoom] ${player.username} left for good`);
 
-        if (wasHost && this.state.players.size > 0) {
-            const nextHost = Array.from(this.state.players.values())[0];
-            nextHost.isHost = true;
+            if (wasHost && this.state.players.size > 0) {
+                const nextHost = Array.from(this.state.players.values())[0];
+                nextHost.isHost = true;
+            }
         }
     }
 

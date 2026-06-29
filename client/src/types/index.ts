@@ -11,6 +11,7 @@ export interface Player {
   username: string;
   ready: boolean;
   isHost: boolean;
+  preferredTeam?: "alpha" | "beta" | "";
 }
 
 export interface AuthResponse {
@@ -74,6 +75,10 @@ export interface BattleProblem {
   hiddenCount: number;
   templates: { python: string; javascript: string; cpp: string };
   tags: string[];
+  constraints?: string;
+  companies?: string[];
+  expectedComplexity?: string;
+  hints?: string[];
 }
 
 export interface BattlePlayerEntry {
@@ -90,9 +95,9 @@ export interface BattlePlayerEntry {
 export interface BattleLiveEvent {
   id: string;
   username: string;
-  type: "accepted" | "eliminated";
+  type: "accepted" | "eliminated" | "system" | "wrong_answer" | "runtime_error";
   message: string;
-  color: "green" | "red";
+  color: "green" | "red" | "amber" | "purple";
   timestamp: number;
 }
 

@@ -141,10 +141,13 @@ const SEED_QUESTIONS = [
  * Clears existing questions and inserts fresh seed data.
  * For development/testing only.
  */
-router.post("/seed", async (_req, res) => {
+router.post("/seed", async (req, res) => {
     try {
+        const body = req.body;
+        // If the user sends their own questions array, use that; otherwise use built-in seeds
+        const questionsToInsert = Array.isArray(body) && body.length > 0 ? body : SEED_QUESTIONS;
         await QuestionModel.deleteMany({});
-        const inserted = await QuestionModel.insertMany(SEED_QUESTIONS);
+        const inserted = await QuestionModel.insertMany(questionsToInsert);
         console.log(`[quiz.routes] Seeded ${inserted.length} questions`);
         res.json({ ok: true, count: inserted.length });
     } catch (err) {
@@ -163,6 +166,19 @@ router.get("/questions", async (_req, res) => {
         res.json({ questions });
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch questions" });
+    }
+});
+
+/**
+ * GET /api/quiz/categories
+ * Returns distinct category values from the questions collection.
+ */
+router.get("/categories", async (_req, res) => {
+    try {
+        const categories = await QuestionModel.distinct("category");
+        res.json({ categories: categories.filter(Boolean).sort() });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch categories" });
     }
 });
 
