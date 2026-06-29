@@ -96,98 +96,258 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center text-center pt-20 px-4 overflow-hidden">
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-start justify-center pt-24 pb-16 px-8 md:px-16 lg:px-24 overflow-hidden bg-[#030308]">
+        {/* Full-Screen Background Image (Second Image) */}
+        <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[65%] pointer-events-none z-0 overflow-hidden">
+          <div 
+            className="w-full h-full bg-[url('/images/landing_bg.jpg')] bg-cover bg-center opacity-70"
+          />
+          {/* Subtle fade grid */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+          {/* Horizontal fade to solid landing background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#030308] via-[#030308]/50 to-transparent" />
+          {/* Vertical fade to bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#030308] to-transparent" />
+        </div>
 
-
-        <div className="relative z-10 max-w-5xl mx-auto" style={{ transform: `translateY(${scrollY * -0.1}px)` }}>
-          <h1 className="text-7xl md:text-9xl font-black leading-[0.9] tracking-tighter mb-4">
+        {/* Content Container (Left-aligned) */}
+        <div className="relative z-10 max-w-xl md:max-w-2xl text-left" style={{ transform: `translateY(${scrollY * -0.05}px)` }}>
+          <h1 className="text-6xl md:text-8xl font-black leading-[0.9] tracking-tighter mb-6 text-left">
             <span className="text-white block">CODE.</span>
             <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">COMPETE.</span>
             <span className="text-white block">CONQUER.</span>
           </h1>
-          <p className="text-gray-400 text-xl mt-6 mb-10 max-w-xl mx-auto">
-            The ultimate platform for coders.<br />Battles, challenges and glory await.
+          
+          <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-lg leading-relaxed">
+            The ultimate platform for coders.<br />
+            Battles, challenges and glory await.
           </p>
 
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <button onClick={() => navigate("/register")} className="px-8 py-4 text-base font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all hover:scale-105 active:scale-95">
-              Play Now
+          <div className="flex items-center gap-4 flex-wrap">
+            <button onClick={() => navigate("/register")} className="px-8 py-4 rounded-full font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
+              Start Your Journey
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </button>
-            <button onClick={() => toast("🎬 Trailer — Coming Soon!", { icon: '⏳', duration: 3000 })} className="px-8 py-4 text-base font-bold text-white bg-white/5 border border-white/15 hover:bg-white/10 rounded-2xl transition-all flex items-center gap-3">
+            <button onClick={() => toast("🎬 Trailer — Coming Soon!", { icon: '⏳', duration: 3000 })} className="px-8 py-4 rounded-full font-bold text-white bg-[#030308]/60 border border-white/15 hover:bg-white/10 transition-all flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                 <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
               </div>
-              Watch Trailer
+              Play Demo
             </button>
           </div>
 
-          <p className="text-gray-600 text-xs mt-8 flex items-center justify-center gap-2">
-            <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            Scroll to explore
-          </p>
+          {/* Gamified Live User Badge */}
+          <div className="inline-flex items-center gap-2 bg-[#030308]/60 border border-white/5 rounded-full px-4 py-2 mt-8 text-xs font-semibold text-gray-400 z-10 backdrop-blur-md">
+            <span className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live
+            </span>
+          </div>
         </div>
 
-        {/* Silhouette figure (CSS art) */}
-        <div className="absolute right-8 bottom-0 opacity-20 pointer-events-none hidden xl:block">
-          <div className="w-64 h-96 relative">
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-80 bg-gradient-to-t from-violet-500/80 to-transparent rounded-t-full blur-sm" />
-          </div>
+        {/* Bouncing Scroll Indicator at the bottom center */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-600 text-xs flex items-center gap-2 z-10 pointer-events-none">
+          <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          Scroll to explore
         </div>
       </section>
 
       {/* Overview / What is Hashnet? */}
-      <section className="relative max-w-7xl mx-auto px-6 py-20 border-y border-white/5 bg-[#050510]/50 backdrop-blur-md">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none" />
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 space-y-6 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-black tracking-wider uppercase">
-              ✨ Discover Hashnet
+      <section className="relative max-w-7xl mx-auto px-6 py-20 border-y border-white/5 bg-[#030308]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          
+          {/* Left Column: Heading and description */}
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-8 text-left">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-black tracking-wider uppercase mb-6">
+                ✦ DISCOVER HASHNET
+              </div>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
+                The Next <br/>
+                Evolution of <br/>
+                <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Interactive <br/>Learning</span>
+              </h2>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8">
+                Hashnet blends real-time multiplayer gaming mechanics with industry-grade software development practices. Whether you are prepping for interviews, training your team, or mastering data structures, Hashnet makes code education cooperative, competitive, and highly addictive.
+              </p>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight">
-              The Next Evolution of <br/>
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Interactive Learning</span>
-            </h2>
-            <p className="text-gray-400 text-base leading-relaxed">
-              Hashnet blends real-time multiplayer gaming mechanics with industry-grade software development practices. Whether you are prepping for interviews, training your team, or mastering data structures, Hashnet makes code education cooperative, competitive, and highly addictive.
-            </p>
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="p-4 rounded-xl border border-white/5 bg-white/5">
-                <div className="text-xl mb-1">🎮</div>
-                <div className="font-bold text-white text-sm">Gamified Progression</div>
-                <div className="text-xs text-gray-500">Earn XP, complete daily code quests, and raise your rankings.</div>
+            
+            <div className="space-y-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-4 rounded-2xl border border-white/5 bg-[#12121a]/40 backdrop-blur-md">
+                  <div className="text-2xl">👥</div>
+                  <div>
+                    <div className="font-black text-white text-lg leading-none">125K+</div>
+                    <div className="text-xs text-gray-500 font-semibold mt-1">Active Coders</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-2xl border border-white/5 bg-[#12121a]/40 backdrop-blur-md">
+                  <div className="text-2xl text-violet-400">⚡</div>
+                  <div>
+                    <div className="font-black text-white text-lg leading-none">2.5M+</div>
+                    <div className="text-xs text-gray-500 font-semibold mt-1">Battles Played</div>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 rounded-xl border border-white/5 bg-white/5">
-                <div className="text-xl mb-1">🚀</div>
-                <div className="font-bold text-white text-sm">Realtime Matchmaking</div>
-                <div className="text-xs text-gray-500">Join lobby rooms instantly with friends or online rivals.</div>
-              </div>
+
+              <button onClick={() => navigate("/register")} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm border border-violet-500/30 text-violet-400 hover:text-white hover:bg-violet-600/20 transition-all mr-auto">
+                Explore All Features
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </button>
             </div>
           </div>
+
+          {/* Right Column: Top two cards */}
           <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-8 rounded-3xl border border-violet-500/20 bg-[#0d0d1e] space-y-4 hover:border-violet-500/40 transition-colors shadow-lg shadow-violet-950/20">
-              <div className="w-12 h-12 rounded-xl bg-violet-600/20 flex items-center justify-center text-2xl text-violet-400">🤖</div>
-              <h3 className="text-xl font-bold text-white">Agentic AI & RAG Mentor</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Unlock deeper insights with our built-in AI Guide. It analyzes uploaded documentation and code context (RAG) to provide contextual hints, conceptual breakdowns, and step-by-step guidance without spoiling the solution.
-              </p>
+            
+            {/* Agentic AI & RAG Mentor */}
+            <div className="relative rounded-3xl border border-white/5 bg-[#06060c] p-8 flex flex-col justify-between overflow-hidden group min-h-[320px] shadow-[0_0_30px_-10px_rgba(124,58,237,0.1)] hover:border-violet-500/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-violet-600/10 blur-[60px] rounded-full pointer-events-none" />
+              
+              <div className="relative z-10 flex-1 flex flex-col">
+                <div className="w-12 h-12 rounded-xl bg-violet-600/20 flex items-center justify-center text-2xl mb-4 border border-violet-500/20">🤖</div>
+                <h3 className="text-xl font-bold text-white mb-2 leading-tight">Agentic AI &<br/>RAG Mentor</h3>
+                <span className="inline-block text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20 mb-4 mr-auto">AI Powered</span>
+                <p className="text-gray-400 text-xs leading-relaxed max-w-[55%]">
+                  Unlock deeper insights with our built-in AI Guide. It analyzes uploaded documentation and code context (RAG) to provide hints, conceptual breakdowns, and step-by-step guidance.
+                </p>
+              </div>
+
+              {/* Float Illustration */}
+              <div className="absolute right-[-10%] bottom-[-5%] w-[55%] h-[75%] pointer-events-none">
+                <img src="/images/mode10.png" alt="RAG AI Illustration" className="w-full h-full object-contain mix-blend-lighten opacity-80 transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#06060c] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#06060c] via-transparent to-transparent" />
+              </div>
+
+              <button onClick={() => navigate("/register")} className="text-xs font-bold text-violet-400 flex items-center gap-1 hover:text-white transition-colors relative z-10 mt-6">
+                Learn more <span className="transition-transform group-hover:translate-x-1">→</span>
+              </button>
             </div>
-            <div className="p-8 rounded-3xl border border-emerald-500/20 bg-[#0a1a14] space-y-4 hover:border-emerald-500/40 transition-colors shadow-lg shadow-emerald-950/20">
-              <div className="w-12 h-12 rounded-xl bg-emerald-600/20 flex items-center justify-center text-2xl text-emerald-400">🖥️</div>
-              <h3 className="text-xl font-bold text-white">Colyseus Multiplayer Engine</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Powered by a high-throughput Colyseus.js state-synchronization protocol. Every keystroke in the multiplayer coding room, every choice in quiz duels, and every attack on AI bosses is calculated and broadcast instantly.
-              </p>
+
+            {/* Colyseus Multiplayer Engine */}
+            <div className="relative rounded-3xl border border-white/5 bg-[#050b08] p-8 flex flex-col justify-between overflow-hidden group min-h-[320px] shadow-[0_0_30px_-10px_rgba(16,185,129,0.1)] hover:border-emerald-500/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-600/10 blur-[60px] rounded-full pointer-events-none" />
+              
+              <div className="relative z-10 flex-1 flex flex-col">
+                <div className="w-12 h-12 rounded-xl bg-emerald-600/20 flex items-center justify-center text-2xl mb-4 border border-emerald-500/20">🖥️</div>
+                <h3 className="text-xl font-bold text-white mb-2 leading-tight">Colyseus Multiplayer<br/>Engine</h3>
+                <span className="inline-block text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 mb-4 mr-auto">Real-Time</span>
+                <p className="text-gray-400 text-xs leading-relaxed max-w-[55%]">
+                  Powered by a high-throughput Colyseus.js state-synchronization protocol. Every keystroke in multiplayer coding rooms, every choice in quiz duels, and every boss attack is synchronized instantly.
+                </p>
+              </div>
+
+              {/* Float Illustration */}
+              <div className="absolute right-[-10%] bottom-[-5%] w-[55%] h-[75%] pointer-events-none">
+                <img src="/images/mode11.png" alt="Colyseus Illustration" className="w-full h-full object-contain mix-blend-lighten opacity-80 transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050b08] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#050b08] via-transparent to-transparent" />
+              </div>
+
+              <button onClick={() => navigate("/register")} className="text-xs font-bold text-emerald-400 flex items-center gap-1 hover:text-white transition-colors relative z-10 mt-6">
+                Learn more <span className="transition-transform group-hover:translate-x-1">→</span>
+              </button>
             </div>
-            <div className="p-8 rounded-3xl border border-fuchsia-500/20 bg-[#160b1c] space-y-4 hover:border-fuchsia-500/40 transition-colors shadow-lg shadow-fuchsia-950/20 md:col-span-2">
-              <div className="w-12 h-12 rounded-xl bg-fuchsia-600/20 flex items-center justify-center text-2xl text-fuchsia-400">⚔️</div>
-              <h3 className="text-xl font-bold text-white">Co-op & Raid Modes (MMORPG for Coders)</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Tackle algorithm problems or tricky system design quizzes as a guild. Team up with friends to deal damage to high-HP "AI Code Bosses" by writing optimized solutions. Coordinate roles, share strategies, and reap legendary rewards together.
-              </p>
-            </div>
+
           </div>
+
+          {/* Row 2: Gamified, Matchmaking, and Co-op Card */}
+          <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-12 gap-6 mt-2">
+            
+            {/* Gamified Progression */}
+            <div className="md:col-span-3 relative rounded-3xl border border-white/5 bg-[#06060c] p-6 flex flex-col justify-between overflow-hidden group min-h-[300px] hover:border-violet-500/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-36 h-36 bg-violet-600/5 blur-[50px] rounded-full pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className="w-10 h-10 rounded-lg bg-violet-600/20 flex items-center justify-center text-xl mb-4 border border-violet-500/20">🎮</div>
+                <h3 className="text-lg font-bold text-white mb-2 leading-tight">Gamified<br/>Progression</h3>
+                <p className="text-gray-400 text-xs leading-relaxed max-w-[70%]">
+                  Earn XP, complete daily code quests, unlock achievements, and climb global leaderboards.
+                </p>
+              </div>
+
+              {/* Float Illustration */}
+              <div className="absolute right-[-10%] bottom-[-5%] w-[60%] h-[55%] pointer-events-none">
+                <img src="/images/mode7.png" alt="Progression" className="w-full h-full object-contain mix-blend-lighten opacity-75 transition-transform duration-750 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#06060c] via-transparent to-transparent" />
+              </div>
+            </div>
+
+            {/* Realtime Matchmaking */}
+            <div className="md:col-span-3 relative rounded-3xl border border-white/5 bg-[#0a050c] p-6 flex flex-col justify-between overflow-hidden group min-h-[300px] hover:border-pink-500/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-36 h-36 bg-pink-600/5 blur-[50px] rounded-full pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className="w-10 h-10 rounded-lg bg-pink-600/20 flex items-center justify-center text-xl mb-4 border border-pink-500/20">🚀</div>
+                <h3 className="text-lg font-bold text-white mb-2 leading-tight">Realtime<br/>Matchmaking</h3>
+                <p className="text-gray-400 text-xs leading-relaxed max-w-[70%]">
+                  Join lobby rooms instantly with friends or online rivals. Smart matchmaking ensures balanced and exciting battles.
+                </p>
+              </div>
+
+              {/* Float Illustration */}
+              <div className="absolute right-[-10%] bottom-[-5%] w-[60%] h-[55%] pointer-events-none">
+                <img src="/images/mode8.png" alt="Matchmaking" className="w-full h-full object-contain mix-blend-lighten opacity-75 transition-transform duration-750 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a050c] via-transparent to-transparent" />
+              </div>
+            </div>
+
+            {/* Co-op & Raid Modes (MMORPG for Coders) */}
+            <div className="md:col-span-6 relative rounded-3xl border border-white/5 bg-[#0c0612] p-8 flex flex-col md:flex-row justify-between items-center overflow-hidden group min-h-[300px] hover:border-fuchsia-500/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-600/10 blur-[85px] rounded-full pointer-events-none" />
+              
+              <div className="flex-1 space-y-4 relative z-10 text-left">
+                <div className="w-10 h-10 rounded-lg bg-fuchsia-600/20 flex items-center justify-center text-xl border border-fuchsia-500/20">⚔️</div>
+                <h3 className="text-xl font-bold text-white mb-1">Co-op & Raid Modes<br/>(MMORPG for Coders)</h3>
+                <span className="inline-block text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/20 mb-3">Co-Op</span>
+                <p className="text-gray-400 text-xs leading-relaxed max-w-sm">
+                  Tackle algorithm problems or tricky system design quizzes as a guild. Team up with friends to deal damage to high-HP "AI Code Bosses" by writing optimized solutions. Coordinate roles, share strategies, and reap legendary rewards together.
+                </p>
+                <div className="flex items-center gap-4 pt-2">
+                  <button onClick={() => navigate("/register")} className="text-xs font-bold text-fuchsia-400 flex items-center gap-1 hover:text-white transition-colors">
+                    Learn more <span className="transition-transform group-hover:translate-x-1">→</span>
+                  </button>
+                  <div className="flex items-center gap-3 pl-4 border-l border-white/10 text-lg">
+                    <span className="hover:scale-125 transition-transform" title="Trophy">🏆</span>
+                    <span className="hover:scale-125 transition-transform" title="Gem">💎</span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 select-none">XP</span>
+                    <span className="hover:scale-125 transition-transform" title="Chest">🎁</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Boss Raid Graphic */}
+              <div className="w-full max-w-xs md:max-w-none md:w-[45%] h-64 pointer-events-none relative mt-4 md:mt-0">
+                <img src="/images/mode5.png" alt="Raid Boss Fight" className="w-full h-full object-contain mix-blend-lighten opacity-95 rounded-2xl transition-transform duration-750 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0612] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0c0612] via-transparent to-transparent" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Bar: Horizontal items */}
+          <div className="lg:col-span-12 mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4 bg-[#050510]/80 border border-white/5 rounded-2xl p-4 divide-y lg:divide-y-0 lg:divide-x divide-white/5">
+            {[
+              { icon: "🎯", title: "Learn by Competing", desc: "Sharpen skills in real battles" },
+              { icon: "👥", title: "Build Together", desc: "Code, collaborate, conquer" },
+              { icon: "🏆", title: "Climb & Conquer", desc: "Prove your skills, be the best" },
+              { icon: "🛡️", title: "Trusted by Coders", desc: "Built for coders, by coders" }
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 px-6 py-2 first:pt-2 first:lg:pt-2 lg:py-2">
+                <span className="text-2xl">{item.icon}</span>
+                <div className="text-left">
+                  <h4 className="text-sm font-bold text-white leading-none">{item.title}</h4>
+                  <p className="text-xs text-gray-500 font-semibold mt-1.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 

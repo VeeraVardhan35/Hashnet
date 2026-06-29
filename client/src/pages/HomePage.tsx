@@ -173,100 +173,117 @@ export default function HomePage() {
           
           {/* Competitive Programming */}
           <div className="flex flex-col rounded-3xl border border-fuchsia-500/30 bg-[#120a1c] overflow-hidden relative group shadow-[0_0_30px_-5px_rgba(217,70,239,0.15)] hover:shadow-[0_0_40px_0px_rgba(217,70,239,0.3)] transition-all duration-300">
-            {/* Background image mockup using CSS gradient for now */}
-            <div className="absolute top-0 right-0 w-full h-48 bg-gradient-to-bl from-fuchsia-600/20 to-transparent opacity-50"></div>
+            {/* Blended Background Illustration */}
+            <div className="absolute right-0 top-0 bottom-0 w-[45%] pointer-events-none overflow-hidden hidden sm:block">
+              <div 
+                className="w-full h-full bg-[url('/images/mode0.png')] bg-cover bg-center opacity-70 mix-blend-lighten"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#120a1c] via-[#120a1c]/40 to-transparent" />
+            </div>
             
             <div className="p-8 flex-1 flex flex-col relative z-10">
-              <h2 className="text-2xl font-black text-white mb-2 leading-tight">COMPETITIVE<br/>PROGRAMMING</h2>
-              <p className="text-fuchsia-400 font-semibold text-sm mb-4">Code. Compete. Conquer.</p>
-              <p className="text-gray-400 text-sm mb-6 max-w-[90%]">
+              <h2 className="text-2xl font-black text-white mb-1 leading-tight tracking-tight">COMPETITIVE<br/>PROGRAMMING</h2>
+              <p className="text-fuchsia-400 font-bold text-xs uppercase tracking-wider mb-4 font-mono">Code. Compete. Conquer.</p>
+              <p className="text-gray-400 text-sm mb-6 max-w-[85%] sm:max-w-[60%] md:max-w-full leading-relaxed">
                 Solve Codeforces problems in an endless run. The more you solve, the higher you climb!
               </p>
               
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-orange-500">🔥</span> Endless Run
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-orange-500 text-base">🔥</span> Endless Run
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-yellow-500">⚡</span> Improve Codeforces Rating
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-yellow-500 text-base">⚡</span> Improve Codeforces Rating
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-blue-400">📊</span> Track Your Progress
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-blue-400 text-base">📊</span> Track Your Progress
                 </li>
               </ul>
               
               <div className="flex-1" />
               
-              <button onClick={() => navigate("/competitive/setup")} className="w-full py-4 rounded-2xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-600/30 transition-transform active:scale-[0.98]">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                COMPETITIVE PROGRAMMING
-                <svg className="w-5 h-5 ml-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              <button onClick={() => navigate("/competitive/setup")} className="w-full py-4 rounded-2xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-600/30 transition-all active:scale-[0.98] hover:scale-[1.02]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                START CODING
+                <svg className="w-4 h-4 ml-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
 
           {/* Create Room */}
           <div className="flex flex-col rounded-3xl border border-emerald-500/30 bg-[#0a1a14] overflow-hidden relative group shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)] hover:shadow-[0_0_40px_0px_rgba(16,185,129,0.3)] transition-all duration-300">
-            <div className="absolute top-0 right-0 w-full h-48 bg-gradient-to-bl from-emerald-600/20 to-transparent opacity-50"></div>
+            {/* Blended Background Illustration */}
+            <div className="absolute right-0 top-0 bottom-0 w-[45%] pointer-events-none overflow-hidden hidden sm:block">
+              <div 
+                className="w-full h-full bg-[url('/images/mode1.png')] bg-cover bg-center opacity-70 mix-blend-lighten"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a1a14] via-[#0a1a14]/40 to-transparent" />
+            </div>
             
             <div className="p-8 flex-1 flex flex-col relative z-10">
-              <h2 className="text-2xl font-black text-white mb-2 leading-tight">CREATE<br/>ROOM</h2>
-              <p className="text-emerald-400 font-semibold text-sm mb-4">Host. Invite. Battle.</p>
-              <p className="text-gray-400 text-sm mb-6 max-w-[90%]">
+              <h2 className="text-2xl font-black text-white mb-1 leading-tight tracking-tight">CREATE<br/>ROOM</h2>
+              <p className="text-emerald-400 font-bold text-xs uppercase tracking-wider mb-4 font-mono">Host. Invite. Battle.</p>
+              <p className="text-gray-400 text-sm mb-6 max-w-[85%] sm:max-w-[60%] md:max-w-full leading-relaxed">
                 Create your own room, invite friends and set the rules of the game.
               </p>
               
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-emerald-500">⚙️</span> Customize Game Settings
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-emerald-500 text-base">⚙️</span> Customize Game Settings
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-emerald-500">👥</span> Invite Friends
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-emerald-500 text-base">👥</span> Invite Friends
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-emerald-500">🔒</span> Private or Public Room
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-emerald-500 text-base">🔒</span> Private or Public Room
                 </li>
               </ul>
               
               <div className="flex-1" />
               
-              <button onClick={() => navigate("/create-room")} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition-transform active:scale-[0.98]">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              <button onClick={() => navigate("/create-room")} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition-all active:scale-[0.98] hover:scale-[1.02]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 CREATE ROOM
-                <svg className="w-5 h-5 ml-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <svg className="w-4 h-4 ml-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
 
           {/* Join Room */}
           <div className="flex flex-col rounded-3xl border border-blue-500/30 bg-[#0a101c] overflow-hidden relative group shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] hover:shadow-[0_0_40px_0px_rgba(59,130,246,0.3)] transition-all duration-300">
-            <div className="absolute top-0 right-0 w-full h-48 bg-gradient-to-bl from-blue-600/20 to-transparent opacity-50"></div>
+            {/* Blended Background Illustration */}
+            <div className="absolute right-0 top-0 bottom-0 w-[45%] pointer-events-none overflow-hidden hidden sm:block">
+              <div 
+                className="w-full h-full bg-[url('/images/mode2.png')] bg-cover bg-center opacity-70 mix-blend-lighten"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a101c] via-[#0a101c]/40 to-transparent" />
+            </div>
             
             <div className="p-8 flex-1 flex flex-col relative z-10">
-              <h2 className="text-2xl font-black text-white mb-2 leading-tight">JOIN<br/>ROOM</h2>
-              <p className="text-blue-400 font-semibold text-sm mb-4">Join. Compete. Win.</p>
-              <p className="text-gray-400 text-sm mb-6 max-w-[90%]">
+              <h2 className="text-2xl font-black text-white mb-1 leading-tight tracking-tight">JOIN<br/>ROOM</h2>
+              <p className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-4 font-mono">Join. Compete. Win.</p>
+              <p className="text-gray-400 text-sm mb-6 max-w-[85%] sm:max-w-[60%] md:max-w-full leading-relaxed">
                 Enter a room code and join exciting battles with players.
               </p>
               
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-blue-500">⌨️</span> Enter Room Code
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-blue-500 text-base">⌨️</span> Enter Room Code
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-blue-500">⚡</span> Quick Join
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-blue-500 text-base">⚡</span> Quick Join
                 </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300 font-medium">
-                  <span className="text-blue-500">🌐</span> Real-time Competition
+                <li className="flex items-center gap-3 text-sm text-gray-300 font-semibold">
+                  <span className="text-blue-500 text-base">🌐</span> Real-time Competition
                 </li>
               </ul>
               
               <div className="flex-1" />
               
-              <button onClick={() => setShowJoinModal(true)} className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 transition-transform active:scale-[0.98]">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              <button onClick={() => setShowJoinModal(true)} className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] hover:scale-[1.02]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 JOIN ROOM
-                <svg className="w-5 h-5 ml-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <svg className="w-4 h-4 ml-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
