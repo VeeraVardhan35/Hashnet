@@ -27,18 +27,30 @@ export class QuizTeamsRoom extends Room<QuizTeamsState> {
     private revealStarted = false; // guard: only start reveal once per question
     private nextTeam: "alpha" | "beta" = "alpha";
 
-    async onCreate(options: { lobbyRoomCode?: string }) {
+    async onCreate(options: any) {
         this.setState(new QuizTeamsState());
         this.state.roomCode = options?.lobbyRoomCode ?? generateRoomCode();
-        this.state.totalQuestions = QUESTION_COUNT;
-        this.state.roundDuration = ROUND_DURATION_SECS;
+        
+        const qCount = options?.questionsCount ?? QUESTION_COUNT;
+        this.state.totalQuestions = qCount;
+        this.state.roundDuration = options?.timePerQuestion ?? ROUND_DURATION_SECS;
 
         await this.setMetadata({ roomCode: this.state.roomCode });
+
         console.log("[QuizTeamsRoom] Created, code:", this.state.roomCode);
 
-        const docs = await QuestionModel.aggregate([
-            { $sample: { size: QUESTION_COUNT } },
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.category = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await QuestionModel.aggregate([
+            { $match: filter },
+            { $sample: { size: qCount } },
         ]);
+
+        if (docs.length === 0) {
+            docs = await QuestionModel.aggregate([{ $sample: { size: qCount } }]);
+        }
 
         this.questions = docs.map((d) => ({
             text: d.text,
@@ -102,16 +114,15 @@ export class QuizTeamsRoom extends Room<QuizTeamsState> {
             if (!this.revealStarted) {
                 this.revealStarted = true;
 
-                // Cancel the full-duration question timer
                 if (this.questionTimer !== null) {
                     clearTimeout(this.questionTimer);
                     this.questionTimer = null;
                 }
 
-                const nextQuestionAt = Date.now() + REVEAL_SECS * 1000;
-
-                // Tell all clients: "next question in X seconds"
-                this.broadcast("revealCountdown", { nextQuestionAt });
+                // Change state to reveal so all clients see the phase change
+                this.state.phase = "reveal";
+                // Standard countdown using the roundEndsAt property
+                this.state.roundEndsAt = Date.now() + REVEAL_SECS * 1000;
 
                 this.revealTimer = setTimeout(() => {
                     this.revealTimer = null;
@@ -150,15 +161,25 @@ export class QuizTeamsRoom extends Room<QuizTeamsState> {
         console.log(`[QuizTeamsRoom] ${player.username} joined Team ${player.team}`);
     }
 
-    onLeave(client: Client) {
+    async onLeave(client: Client, consented: boolean) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
-        const wasHost = player.isHost;
-        this.state.players.delete(client.sessionId);
 
-        if (wasHost && this.state.players.size > 0) {
-            const nextHost = Array.from(this.state.players.values())[0];
-            nextHost.isHost = true;
+        console.log(`[QuizTeamsRoom] ${player.username} disconnected. Waiting for reconnection...`);
+
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[QuizTeamsRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            const wasHost = player.isHost;
+            this.state.players.delete(client.sessionId);
+            console.log(`[QuizTeamsRoom] ${player.username} left for good`);
+
+            if (wasHost && this.state.players.size > 0) {
+                const nextHost = Array.from(this.state.players.values())[0];
+                nextHost.isHost = true;
+            }
         }
     }
 
@@ -183,10 +204,9 @@ export class QuizTeamsRoom extends Room<QuizTeamsState> {
         this.questionTimer = setTimeout(() => {
             this.questionTimer = null;
             if (!this.revealStarted) {
-                // Nobody answered — treat as "time's up" and give a short reveal then advance
                 this.revealStarted = true;
-                const nextQuestionAt = Date.now() + 2000;
-                this.broadcast("revealCountdown", { nextQuestionAt });
+                this.state.phase = "reveal";
+                this.state.roundEndsAt = Date.now() + 2000;
                 this.revealTimer = setTimeout(() => {
                     this.revealTimer = null;
                     this.advanceFromQuestion();

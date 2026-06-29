@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuizBossRaid } from "../hooks/useQuizBossRaid";
 import { useRoomStore } from "../store/room.store";
@@ -8,6 +8,55 @@ function formatTime(secs: number) {
   const m = Math.floor(secs / 60).toString().padStart(2, "0");
   const s = (secs % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
+}
+
+// Floating damage/heal number component
+type FloatVal = { id: number; value: number; isHeal: boolean };
+function useFloatingValues(hp: number) {
+  const [floats, setFloats] = useState<FloatVal[]>([]);
+  const prevHp = useRef(hp);
+  useEffect(() => {
+    if (prevHp.current !== hp && prevHp.current !== 0) {
+      const delta = hp - prevHp.current;
+      const id = Date.now();
+      setFloats((prev) => [...prev, { id, value: Math.abs(delta), isHeal: delta > 0 }]);
+      setTimeout(() => setFloats((prev) => prev.filter((f) => f.id !== id)), 1500);
+    }
+    prevHp.current = hp;
+  }, [hp]);
+  return floats;
+}
+
+function FloatingValueDisplay({ floats }: { floats: FloatVal[] }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+      {floats.map((f) => (
+        <div
+          key={f.id}
+          className={`absolute left-1/2 -translate-x-1/2 font-black text-sm ${
+            f.isHeal ? "text-emerald-400" : "text-red-400"
+          }`}
+          style={{
+            animation: "floatUp 1.4s ease-out forwards",
+            bottom: "100%",
+            textShadow: f.isHeal ? "0 0 12px #10b981" : "0 0 12px #ef4444",
+          }}
+        >
+          {f.isHeal ? "+" : "-"}{f.value.toLocaleString()}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HpBarWithFloats({ hp, maxHp, color = "emerald" }: { hp: number; maxHp: number; color?: string }) {
+  const floats = useFloatingValues(hp);
+  return (
+    <div className="relative">
+      <FloatingValueDisplay floats={floats} />
+      <HpBar hp={hp} maxHp={maxHp} color={color} />
+    </div>
+  );
 }
 
 function HpBar({ hp, maxHp, color = "emerald" }: { hp: number; maxHp: number; color?: string }) {
@@ -68,7 +117,7 @@ export default function QuizBossRaidPage() {
 
   const [timeLeft, setTimeLeft] = useState(0);
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" && phase !== "reveal") return;
     const tick = () => setTimeLeft(Math.max(0, Math.ceil((roundEndsAt - Date.now()) / 1000)));
     tick();
     const id = setInterval(tick, 250);
@@ -116,18 +165,20 @@ export default function QuizBossRaidPage() {
   if (phase === "countdown") {
     const secs = Math.max(0, Math.ceil((phaseStartsAt - Date.now()) / 1000));
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base">
-        <div className="glass-card-solid p-12 text-center max-w-sm w-full mx-4 animate-slide-up">
-          <div className="w-28 h-28 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-900 to-red-900 flex items-center justify-center text-6xl border border-red-500/30 shadow-lg">
+      <div className="min-h-screen flex items-center justify-center bg-[#010103]">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/20 to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="relative z-10 rounded-3xl border border-red-500/20 bg-[#12121a] p-12 text-center max-w-sm w-full mx-4 shadow-[0_0_50px_rgba(239,68,68,0.15)]">
+          <div className="w-28 h-28 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-900 to-red-900 flex items-center justify-center text-6xl border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.4)]">
             👾
           </div>
-          <h1 className="text-2xl font-extrabold text-red-400 mb-1">{bossName || "Algorithm Overlord"}</h1>
-          <p className="text-xs text-text-muted mb-6">Level {bossLevel} Boss • Quiz Raid</p>
-          <p className="text-text-secondary mb-2">Boss Raid begins in…</p>
-          <div className="text-7xl font-black text-red-400 mb-2">{secs > 0 ? secs : "Go!"}</div>
+          <h1 className="text-3xl font-black text-red-400 mb-1">{bossName || "Algorithm Overlord"}</h1>
+          <p className="text-xs text-gray-500 mb-6">Level {bossLevel} Boss • Quiz Raid</p>
+          <p className="text-gray-400 mb-4">Boss Raid begins in…</p>
+          <div className="text-[100px] font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 leading-none mb-6">{secs > 0 ? secs : "Go!"}</div>
           <div className="flex gap-2 justify-center mt-4 flex-wrap">
             {alivePlayers.map((p) => (
-              <span key={p.id} className={`text-[10px] font-bold px-2 py-1 rounded border ${ROLE_BADGE[p.role]?.color ?? "text-text-muted"}`}>{p.role.toUpperCase()}</span>
+              <span key={p.id} className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${ROLE_BADGE[p.role]?.color ?? "text-gray-500"}`}>{p.role.toUpperCase()}</span>
             ))}
           </div>
         </div>
@@ -139,41 +190,42 @@ export default function QuizBossRaidPage() {
   if (phase === "finished") {
     const won = bossHp <= 0;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base px-4">
-        <div className="glass-card-solid p-8 max-w-xl w-full animate-slide-up">
+      <div className="min-h-screen flex items-center justify-center bg-[#010103] px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
+        <div className="relative z-10 rounded-3xl border border-white/10 bg-[#12121a] p-8 max-w-xl w-full">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">{won ? "🏆" : "💀"}</div>
-            <h1 className={`text-3xl font-extrabold ${won ? "text-emerald-400" : "text-red-400"}`}>
+            <h1 className={`text-4xl font-black ${won ? "text-emerald-400" : "text-red-400"}`}>
               {won ? "Boss Defeated!" : "Boss Wins…"}
             </h1>
-            <p className="text-text-secondary mt-1">
+            <p className="text-gray-400 mt-2">
               {won ? `You destroyed the ${bossName}!` : `${bossName} was too powerful.`}
             </p>
-            {!won && <p className="text-text-muted text-sm mt-1">Boss HP Remaining: {bossHp.toLocaleString()}</p>}
+            {!won && <p className="text-gray-500 text-sm mt-1">Boss HP Remaining: {bossHp.toLocaleString()}</p>}
           </div>
 
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3">Damage Leaderboard</p>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Damage Leaderboard</p>
           <div className="space-y-2 mb-6">
             {playersList.map((p, i) => {
               const medals = ["🥇", "🥈", "🥉"];
               return (
-                <div key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                  p.isAlive ? "border-white/10 bg-white/[0.03]" : "border-red-500/15 bg-red-500/5 opacity-60"
+                <div key={p.id} className={`flex items-center gap-3 p-4 rounded-2xl border ${
+                  p.isAlive ? "border-white/10 bg-white/5" : "border-red-500/15 bg-red-500/5 opacity-60"
                 }`}>
                   <span className="text-lg w-7 text-center shrink-0">{p.isAlive ? (i < 3 ? medals[i] : `#${i+1}`) : "☠"}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm truncate ${p.isAlive ? "text-text-primary" : "text-text-muted line-through"}`}>{p.username}</p>
-                    <p className="text-[10px] text-text-muted">{p.role?.toUpperCase()} • streak {p.streak}🔥</p>
+                    <p className={`font-bold text-sm truncate ${p.isAlive ? "text-white" : "text-gray-500 line-through"}`}>{p.username}</p>
+                    <p className="text-[10px] text-gray-500">{p.role?.toUpperCase()} • streak {p.streak}🔥</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-red-400">⚔ {p.damageDealt.toLocaleString()}</p>
-                    <p className="text-[10px] text-text-muted">{p.score} pts</p>
+                    <p className="text-sm font-black text-red-400">⚔ {p.damageDealt.toLocaleString()}</p>
+                    <p className="text-[10px] text-gray-500">{p.score} pts</p>
                   </div>
                 </div>
               );
             })}
           </div>
-          <button onClick={leaveRoom} className="btn-primary w-full">Back to Home</button>
+          <button onClick={leaveRoom} className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-500 hover:to-red-500 text-white font-black transition-all active:scale-[0.98]">Back to Home</button>
         </div>
       </div>
     );
@@ -185,20 +237,22 @@ export default function QuizBossRaidPage() {
   const labels = ["A", "B", "C", "D"];
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base overflow-hidden" style={{ height: "100vh" }}>
+    <div className="min-h-screen flex flex-col bg-[#010103] overflow-hidden" style={{ height: "100vh" }}>
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/8 bg-bg-surface/80 backdrop-blur shrink-0">
+      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#010103]/90 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-red-400 font-black text-sm">☠</span>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <span className="text-base">👾</span>
+          </div>
           <div>
-            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest leading-none">QUIZ BOSS RAID</p>
-            <p className="text-text-secondary text-xs font-medium">Question {questionIndex + 1} / {questions.length}</p>
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest leading-none">QUIZ BOSS RAID</p>
+            <p className="text-gray-400 text-xs font-semibold">Question {questionIndex + 1} / {questions.length}</p>
           </div>
           {/* Boss HP in nav bar on XL screens */}
           <div className="hidden xl:flex items-center gap-2 ml-2">
             <div className="w-48 relative">
-              <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+              <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
             </div>
             <span className="text-xs font-bold text-text-muted tabular-nums">
               {bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()} HP
@@ -213,7 +267,7 @@ export default function QuizBossRaidPage() {
           : timeLeft <= 10 ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
           : "border-red-500/30 bg-red-500/5 text-red-400"
         }`}>
-          <span className="text-xs text-text-muted">ENDS IN</span>
+          <span className="text-xs text-text-muted">{phase === "reveal" ? "NEXT IN" : "ENDS IN"}</span>
           <span className="tabular-nums text-2xl">{formatTime(timeLeft)}</span>
         </div>
 
@@ -242,7 +296,7 @@ export default function QuizBossRaidPage() {
           </span>
           <span className="text-xs font-bold text-text-muted tabular-nums">{bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()}</span>
         </div>
-        <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+        <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
       </div>
 
       {/* 3-col layout — mirrors BossRaidPage exactly */}
@@ -258,7 +312,7 @@ export default function QuizBossRaidPage() {
             </div>
             <p className={`text-sm font-black leading-tight ${isEnraged ? "text-red-400" : "text-purple-400"}`}>{bossName}</p>
             <p className="text-[10px] text-text-muted mb-2">Level {bossLevel} Boss</p>
-            <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+            <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
             <p className="text-[10px] text-text-muted tabular-nums mt-1">
               {bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()} HP ({bossHpPct.toFixed(1)}%)
             </p>

@@ -8,6 +8,9 @@ import authRoutes from "./routes/auth.routes.js";
 import roomRoutes from "./routes/room.routes.js";
 import quizRoutes from "./routes/quiz.routes.js";
 import problemRoutes from "./routes/problem.routes.js";
+import competitiveRoutes from "./routes/competitive.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import ragRoutes from "./routes/rag.routes.js";
 import { MyRoom } from "./rooms/MyRoom.js";
 import { QuizRoom } from "./rooms/QuizRoom.js";
 import { BattleRoom } from "./rooms/BattleRoom.js";
@@ -23,7 +26,7 @@ import { QuizBossRaidRoom } from "./rooms/QuizBossRaidRoom.js";
 export function createApp() {
     const app = express();
 
-    app.use(express.json());
+    app.use(express.json({ limit: "10mb" }));
 
     app.use(
         cors({
@@ -32,6 +35,7 @@ export function createApp() {
                 "http://localhost:5174",
                 "https://magnetic-crank-bucket.ngrok-free.dev",
                 "http://10.17.16.106:5173",
+                ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
             ],
         })
     );
@@ -40,6 +44,9 @@ export function createApp() {
     app.use("/api/rooms", roomRoutes);
     app.use("/api/quiz", quizRoutes);
     app.use("/api/problems", problemRoutes);
+    app.use("/api/competitive", competitiveRoutes);
+    app.use("/api/admin", adminRoutes);
+    app.use("/api/rag", ragRoutes);
 
     app.get("/hi", (_req, res) => {
         res.send("It's time to kick ass and chew bubblegum!");

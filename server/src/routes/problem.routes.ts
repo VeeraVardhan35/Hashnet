@@ -222,21 +222,83 @@ int main() {
 ];
 
 /**
+ * Generates a clean starter template with USER_CODE_START/END markers.
+ * The deepseek JSON stores actual solutions in templates — we strip those
+ * and replace with blank starter code so players don't see the answer.
+ */
+function buildStarterTemplate(_title: string, lang: "python" | "javascript" | "cpp"): string {
+    if (lang === "python") {
+        return `# USER_CODE_START
+# Write from scratch
+
+# USER_CODE_END
+`;
+    }
+    if (lang === "javascript") {
+        return `// USER_CODE_START
+// Write from scratch
+
+// USER_CODE_END
+`;
+    }
+    // cpp
+    return `#include <bits/stdc++.h>
+using namespace std;
+
+// USER_CODE_START
+// Write from scratch
+
+// USER_CODE_END
+`;
+}
+
+/**
  * POST /api/problems/seed
  * Drops all problems and inserts fresh seed data (dev only).
  */
-router.post("/seed", async (_req, res) => {
+router.post("/seed", async (req, res) => {
     try {
         await ProblemModel.deleteMany({});
 
-        // Fix hiddenTestCases for problem 1 (uses different key name)
-        const toInsert = SEED_PROBLEMS.map((p) => ({
-            ...p,
-            hiddenTestCases: (p as any).hiddenTestCases?.map((tc: any) => ({
-                input: tc.input,
-                expectedOutput: tc.expectedOutput ?? tc.output,
-            })),
-        }));
+        const body = req.body;
+        const source = Array.isArray(body) && body.length > 0 ? body : SEED_PROBLEMS;
+
+        // Normalize hiddenTestCases field names from various JSON formats.
+        // Also replace solution templates (from deepseek) with clean starter templates.
+        const toInsert = source.map((p: any) => {
+            // Detect if a template contains the actual solution (no USER_CODE_START marker)
+            const hasPyMarker = (p.templates?.python ?? "").includes("USER_CODE_START");
+            const hasJsMarker = (p.templates?.javascript ?? "").includes("USER_CODE_START");
+            const hasCppMarker = (p.templates?.cpp ?? "").includes("USER_CODE_START");
+
+            return {
+                title: p.title,
+                description: p.description,
+                difficulty: p.difficulty ?? "medium",
+                points: p.points ?? 100,
+                timeLimit: p.timeLimit ?? 5000,
+                examples: (p.examples ?? []).map((e: any) => ({
+                    input: e.input ?? "",
+                    output: e.output ?? e.expectedOutput ?? "",
+                    explanation: e.explanation ?? "",
+                })),
+                hiddenTestCases: (p.hiddenTestCases ?? []).map((tc: any) => ({
+                    input: tc.input ?? "",
+                    expectedOutput: tc.expectedOutput ?? tc.output ?? "",
+                })),
+                templates: {
+                    python:     hasPyMarker  ? p.templates.python      : buildStarterTemplate(p.title, "python"),
+                    javascript: hasJsMarker  ? p.templates.javascript  : buildStarterTemplate(p.title, "javascript"),
+                    cpp:        hasCppMarker ? p.templates.cpp         : buildStarterTemplate(p.title, "cpp"),
+                },
+                tags: p.tags ?? [],
+                constraints: p.constraints ?? "",
+                companies: p.companies ?? [],
+                expectedComplexity: p.expectedComplexity ?? "",
+                hints: p.hints ?? [],
+                order: p.order ?? 0,
+            };
+        });
 
         const inserted = await ProblemModel.insertMany(toInsert);
         console.log(`[problem.routes] Seeded ${inserted.length} problems`);
@@ -246,6 +308,7 @@ router.post("/seed", async (_req, res) => {
         res.status(500).json({ error: "Failed to seed problems" });
     }
 });
+
 
 /**
  * GET /api/problems
@@ -260,6 +323,19 @@ router.get("/", async (_req, res) => {
         res.json({ problems });
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch problems" });
+    }
+});
+
+/**
+ * GET /api/problems/tags
+ * Returns distinct tag values from problems collection.
+ */
+router.get("/tags", async (_req, res) => {
+    try {
+        const tags = await ProblemModel.distinct("tags");
+        res.json({ tags: tags.filter(Boolean).sort() });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch tags" });
     }
 });
 

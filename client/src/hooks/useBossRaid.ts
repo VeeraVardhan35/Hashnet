@@ -23,6 +23,7 @@ export function useBossRaid() {
       try {
         const room = await gameClient.joinById(bossRaidRoomId, { username: user.username });
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
         store.setConnected(true);
 
         room.onStateChange((state: any) => {
@@ -137,7 +138,9 @@ export function useBossRaid() {
   }, []);
 
   const leaveRoom = useCallback(() => {
-    roomRef.current?.leave();
+    roomRef.current?.send("leaveRoom");
+    roomRef.current?.leave(true);
+    localStorage.removeItem("hashnet_reconnect_token");
     store.reset();
     resetRoom();
     navigate("/home");

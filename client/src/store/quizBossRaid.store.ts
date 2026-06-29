@@ -24,7 +24,8 @@ interface QuizBossRaidState {
   questionIndex: number;
   selectedOption: number;
   
-  phase: "waiting" | "countdown" | "playing" | "finished";
+  /** Game phase from server schema */
+  phase: "waiting" | "countdown" | "playing" | "reveal" | "finished";
   roundEndsAt: number;
   roundDuration: number;
   phaseStartsAt: number;
@@ -96,7 +97,10 @@ export const useQuizBossRaidStore = create<QuizBossRaidState>((set) => ({
   ...initialState,
   
   setQuestions: (questions) => set({ questions }),
-  setQuestionIndex: (questionIndex) => set({ questionIndex, selectedOption: -1 }),
+  setQuestionIndex: (questionIndex) => set((prev) => ({ 
+    questionIndex, 
+    selectedOption: prev.questionIndex !== questionIndex ? -1 : prev.selectedOption 
+  })),
   setSelectedOption: (selectedOption) => set({ selectedOption }),
   
   setPhase: (phase) => set({ phase }),

@@ -33,6 +33,7 @@ export function useQuizBossRaid() {
         }
 
         roomRef.current = room;
+        localStorage.setItem("hashnet_reconnect_token", room.reconnectionToken);
         store.setConnected(true);
 
         room.onStateChange((state: any) => {
@@ -119,7 +120,9 @@ export function useQuizBossRaid() {
 
   const leaveRoom = useCallback(() => {
     if (roomRef.current) {
-      roomRef.current.leave();
+      roomRef.current.send("leaveRoom");
+      roomRef.current.leave(true);
+      localStorage.removeItem("hashnet_reconnect_token");
     }
     store.reset();
     resetRoom();

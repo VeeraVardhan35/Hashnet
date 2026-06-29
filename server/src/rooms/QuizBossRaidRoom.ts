@@ -32,26 +32,38 @@ export class QuizBossRaidRoom extends Room<QuizBossRaidState> {
     private questions: QuestionData[] = [];
     private questionTimer: ReturnType<typeof setTimeout> | null = null;
     private bossTimer: ReturnType<typeof setTimeout> | null = null;
+    private revealTimer: ReturnType<typeof setTimeout> | null = null;
+    private revealStarted = false;
 
-    async onCreate(options: { lobbyRoomCode?: string }) {
+    async onCreate(options: any) {
         this.setState(new QuizBossRaidState());
         this.state.roomCode = options?.lobbyRoomCode ?? generateRoomCode();
-        this.state.totalQuestions = QUESTION_COUNT;
-        this.state.roundDuration = ROUND_DURATION_SECS;
+        
+        const qCount = options?.questionsCount ?? QUESTION_COUNT;
+        this.state.totalQuestions = qCount;
+        this.state.roundDuration = options?.timePerQuestion ?? ROUND_DURATION_SECS;
 
-        const bossLevel = Math.floor(Math.random() * 10) + 1;
+        const bossLevel = Math.max(1, Math.min(10, options?.bossLevel ?? 5));
         this.state.bossLevel = bossLevel;
-        // Boss HP scales with level. 300 base + 50 per level (300–800 total)
-        // With 8 players solving ~10 questions for 10-20 dmg each = ~800-1600 total dmg
-        this.state.bossMaxHp = 300 + bossLevel * 50;
+        // Boss HP scales with level from 200 (level 1) to 1200 (level 10)
+        this.state.bossMaxHp = 200 + Math.floor(((bossLevel - 1) / 9) * 1000);
         this.state.bossHp = this.state.bossMaxHp;
 
         await this.setMetadata({ roomCode: this.state.roomCode });
         console.log("[QuizBossRaidRoom] Created, code:", this.state.roomCode, "| boss HP:", this.state.bossMaxHp);
 
-        const docs = await QuestionModel.aggregate([
-            { $sample: { size: QUESTION_COUNT } },
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.category = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await QuestionModel.aggregate([
+            { $match: filter },
+            { $sample: { size: qCount } },
         ]);
+
+        if (docs.length === 0) {
+            docs = await QuestionModel.aggregate([{ $sample: { size: qCount } }]);
+        }
 
         this.questions = docs.map((d) => ({
             text: d.text,
@@ -119,13 +131,22 @@ export class QuizBossRaidRoom extends Room<QuizBossRaidState> {
                 this.broadcast("liveEvent", { username: player.username, type: "wrong", message: "missed the target!", color: "red" });
             }
 
-            const allAnswered = Array.from(this.state.players.values()).filter(p => p.isAlive).every((p) => p.answered);
-            if (allAnswered) {
+            // ── Start 5-second reveal on the FIRST answer of this question ──
+            if (!this.revealStarted) {
+                this.revealStarted = true;
+                
                 if (this.questionTimer !== null) {
                     clearTimeout(this.questionTimer);
                     this.questionTimer = null;
                 }
-                setTimeout(() => this.advanceFromQuestion(), REVEAL_DURATION_MS);
+                
+                this.state.phase = "reveal";
+                this.state.roundEndsAt = Date.now() + REVEAL_DURATION_MS;
+
+                this.revealTimer = setTimeout(() => {
+                    this.revealTimer = null;
+                    this.advanceFromQuestion();
+                }, REVEAL_DURATION_MS);
             }
         });
     }
@@ -152,21 +173,33 @@ export class QuizBossRaidRoom extends Room<QuizBossRaidState> {
         console.log(`[QuizBossRaidRoom] ${player.username} joined (${player.role})`);
     }
 
-    onLeave(client: Client) {
+    async onLeave(client: Client, consented: boolean) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
-        const wasHost = player.isHost;
-        this.state.players.delete(client.sessionId);
 
-        if (wasHost && this.state.players.size > 0) {
-            const nextHost = Array.from(this.state.players.values())[0];
-            nextHost.isHost = true;
+        console.log(`[QuizBossRaidRoom] ${player.username} disconnected. Waiting for reconnection...`);
+
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[QuizBossRaidRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            const wasHost = player.isHost;
+            this.state.players.delete(client.sessionId);
+            console.log(`[QuizBossRaidRoom] ${player.username} left for good`);
+
+            if (wasHost && this.state.players.size > 0) {
+                const nextHost = Array.from(this.state.players.values())[0];
+                nextHost.isHost = true;
+            }
+            this.checkAllDead();
         }
     }
 
     onDispose() {
         if (this.questionTimer !== null) clearTimeout(this.questionTimer);
         if (this.bossTimer !== null) clearTimeout(this.bossTimer);
+        if (this.revealTimer !== null) clearTimeout(this.revealTimer);
     }
 
     private beginQuestion(index: number) {
@@ -178,6 +211,7 @@ export class QuizBossRaidRoom extends Room<QuizBossRaidState> {
         this.state.phase = "playing";
         this.state.roundEndsAt = Date.now() + ROUND_DURATION_SECS * 1000;
         this.state.phaseStartsAt = Date.now();
+        this.revealStarted = false;
 
         this.state.players.forEach((p) => {
             p.answered = false;
@@ -186,7 +220,15 @@ export class QuizBossRaidRoom extends Room<QuizBossRaidState> {
 
         this.questionTimer = setTimeout(() => {
             this.questionTimer = null;
-            this.advanceFromQuestion();
+            if (!this.revealStarted) {
+                this.revealStarted = true;
+                this.state.phase = "reveal";
+                this.state.roundEndsAt = Date.now() + 2000;
+                this.revealTimer = setTimeout(() => {
+                    this.revealTimer = null;
+                    this.advanceFromQuestion();
+                }, 2000);
+            }
         }, ROUND_DURATION_SECS * 1000);
     }
 

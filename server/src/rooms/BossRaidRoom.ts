@@ -41,6 +41,10 @@ interface ProblemData {
     hiddenTestCases: { input: string; expectedOutput: string }[];
     templates: { python: string; javascript: string; cpp: string };
     tags: string[];
+    constraints: string;
+    companies: string[];
+    expectedComplexity: string;
+    hints: string[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -66,7 +70,7 @@ export class BossRaidRoom extends Room<BossRaidState> {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    async onCreate(options: { lobbyRoomCode?: string; bossLevel?: number }) {
+    async onCreate(options: any) {
         this.setState(new BossRaidState());
 
         const bossLevel = Math.max(1, Math.min(10, options?.bossLevel ?? 5));
@@ -78,7 +82,14 @@ export class BossRaidRoom extends Room<BossRaidState> {
 
         await this.setMetadata({ roomCode: this.state.roomCode });
 
-        const docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.tags = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await ProblemModel.find(filter).sort({ order: 1 }).lean();
+        if (docs.length === 0) {
+            docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        }
         this.problems = docs.map((d) => ({
             title: d.title, description: d.description,
             difficulty: d.difficulty, points: d.points ?? 100,
@@ -91,8 +102,12 @@ export class BossRaidRoom extends Room<BossRaidState> {
             })),
             templates: d.templates as any,
             tags: d.tags ?? [],
+            constraints: d.constraints ?? "",
+            companies: d.companies ?? [],
+            expectedComplexity: d.expectedComplexity ?? "",
+            hints: d.hints ?? [],
         }));
-        this.state.totalWaves = Math.min(3, this.problems.length || 1);
+        this.state.totalWaves = Math.min(5, this.problems.length || 1);
 
         // Boss HP scales with player count — set dynamically at wave start
         const baseHp = BOSS_BASE_HP;
@@ -110,7 +125,9 @@ export class BossRaidRoom extends Room<BossRaidState> {
         // ── Run Code ─────────────────────────────────────────────────────────
         this.onMessage("runCode", async (client: Client, data: { code: string; language: string }) => {
             try {
-                const problem = this.problems[this.currentProblemIndex];
+                const player = this.state.players.get(client.sessionId);
+                if (!player) { client.send("runCodeResult", { error: "Unknown player" }); return; }
+                const problem = this.problems[player.solved];
                 if (!problem) { client.send("runCodeResult", { error: "No problem loaded" }); return; }
                 const results = await Promise.all(
                     problem.examples.map((ex) =>
@@ -155,7 +172,7 @@ export class BossRaidRoom extends Room<BossRaidState> {
                     return;
                 }
 
-                const problem = this.problems[this.currentProblemIndex];
+                const problem = this.problems[player.solved];
                 if (!problem) { client.send("submitResult", { verdict: "error", details: "No problem loaded" }); return; }
 
                 player.submissions      += 1;
@@ -211,7 +228,13 @@ export class BossRaidRoom extends Room<BossRaidState> {
                         message: `dealt ${damage} damage to boss!`,
                         color: "green",
                     });
+                    
+                    // Immediately send next problem
                     client.send("submitResult", { verdict, details: "", score: player.score, damage });
+                    player.submissionStatus = "";
+                    if (player.solved < this.problems.length) {
+                        client.send("problem", this.buildProblemPayload(player.solved));
+                    }
                 } else {
                     this.broadcast("liveEvent", {
                         username: player.username,
@@ -244,8 +267,20 @@ export class BossRaidRoom extends Room<BossRaidState> {
         console.log(`[BossRaidRoom] ${player.username} joined (role: ${player.role})`);
     }
 
-    onLeave(client: Client) {
-        this.state.players.delete(client.sessionId);
+    async onLeave(client: Client, consented: boolean) {
+        const player = this.state.players.get(client.sessionId);
+        if (!player) return;
+
+        console.log(`[BossRaidRoom] ${player.username} disconnected. Waiting for reconnection...`);
+
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[BossRaidRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            this.state.players.delete(client.sessionId);
+            console.log(`[BossRaidRoom] ${player.username} left for good`);
+        }
     }
 
     onDispose() {
@@ -262,10 +297,9 @@ export class BossRaidRoom extends Room<BossRaidState> {
         this.state.waveNumber    = index + 1;
         this.state.phase         = "wave";
 
-        // Scale boss HP with player count on first wave
+        // Boss HP: scales with level from 200 to 1200
         if (index === 0) {
-            const total = this.state.players.size;
-            const hp = BOSS_BASE_HP + total * BOSS_HP_PER_PLAYER;
+            const hp = 200 + Math.floor(((this.state.bossLevel - 1) / 9) * 1000);
             this.state.bossHp    = hp;
             this.state.bossMaxHp = hp;
         }

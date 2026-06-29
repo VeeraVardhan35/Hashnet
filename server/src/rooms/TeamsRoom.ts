@@ -16,6 +16,10 @@ interface ProblemData {
     hiddenTestCases: { input: string; expectedOutput: string }[];
     templates: { python: string; javascript: string; cpp: string };
     tags: string[];
+    constraints: string;
+    companies: string[];
+    expectedComplexity: string;
+    hints: string[];
 }
 
 export class TeamsRoom extends Room<TeamsState> {
@@ -27,15 +31,22 @@ export class TeamsRoom extends Room<TeamsState> {
 
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
-    async onCreate(options: { lobbyRoomCode?: string }) {
+    async onCreate(options: any) {
         this.setState(new TeamsState());
         this.state.roomCode   = options?.lobbyRoomCode ?? generateRoomCode();
-        this.state.roundDuration = ROUND_DURATION_SECS;
+        this.state.roundDuration = options?.timePerQuestion ?? ROUND_DURATION_SECS;
         this.state.phase         = "countdown";
         this.state.phaseStartsAt = Date.now() + START_COUNTDOWN_MS;
         await this.setMetadata({ roomCode: this.state.roomCode });
 
-        const docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.tags = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await ProblemModel.find(filter).sort({ order: 1 }).lean();
+        if (docs.length === 0) {
+            docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        }
         this.problems = docs.map((d) => ({
             title: d.title, description: d.description,
             difficulty: d.difficulty, points: d.points ?? 100,
@@ -48,8 +59,12 @@ export class TeamsRoom extends Room<TeamsState> {
             })),
             templates: d.templates as any,
             tags: d.tags ?? [],
+            constraints: d.constraints ?? "",
+            companies: d.companies ?? [],
+            expectedComplexity: d.expectedComplexity ?? "",
+            hints: d.hints ?? [],
         }));
-        this.state.totalRounds = this.problems.length || 1;
+        this.state.totalRounds = Math.min(5, this.problems.length || 1);
 
         // ── "ready" handshake: client sends this after registering all listeners
         this.onMessage("ready", (client: Client) => {
@@ -158,26 +173,40 @@ export class TeamsRoom extends Room<TeamsState> {
         console.log("[TeamsRoom] Created, code:", this.state.roomCode);
     }
 
-    onJoin(client: Client, options: { username?: string }) {
+    onJoin(client: Client, options: { username?: string; preferredTeam?: "alpha" | "beta" }) {
         const player     = new TeamsPlayer();
         player.id        = client.sessionId;
         player.username  = options.username?.trim() || "Guest";
         player.isHost    = this.state.players.size === 0;
 
-        // Balanced team assignment
-        const all   = Array.from(this.state.players.values());
-        const alpha = all.filter((p) => p.team === "alpha").length;
-        const beta  = all.filter((p) => p.team === "beta").length;
-        player.team = alpha <= beta ? "alpha" : "beta";
+        // Balanced team assignment or preferred team
+        if (options.preferredTeam === "alpha" || options.preferredTeam === "beta") {
+            player.team = options.preferredTeam;
+        } else {
+            const all   = Array.from(this.state.players.values());
+            const alpha = all.filter((p) => p.team === "alpha").length;
+            const beta  = all.filter((p) => p.team === "beta").length;
+            player.team = alpha <= beta ? "alpha" : "beta";
+        }
 
         this.state.players.set(client.sessionId, player);
         console.log(`[TeamsRoom] ${player.username} joined team ${player.team}`);
     }
 
-    onLeave(client: Client) {
+    async onLeave(client: Client, consented: boolean) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
-        this.state.players.delete(client.sessionId);
+
+        console.log(`[TeamsRoom] ${player.username} disconnected. Waiting for reconnection...`);
+
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[TeamsRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            this.state.players.delete(client.sessionId);
+            console.log(`[TeamsRoom] ${player.username} left for good`);
+        }
     }
 
     onDispose() {

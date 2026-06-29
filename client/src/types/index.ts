@@ -75,6 +75,10 @@ export interface BattleProblem {
   hiddenCount: number;
   templates: { python: string; javascript: string; cpp: string };
   tags: string[];
+  constraints?: string;
+  companies?: string[];
+  expectedComplexity?: string;
+  hints?: string[];
 }
 
 export interface BattlePlayerEntry {

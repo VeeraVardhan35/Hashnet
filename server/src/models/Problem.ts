@@ -33,6 +33,10 @@ const ProblemSchema = new mongoose.Schema(
             cpp: { type: String, default: "" },
         },
         tags: { type: [String], default: [] },
+        constraints: { type: String, default: "" },
+        companies: { type: [String], default: [] },
+        expectedComplexity: { type: String, default: "" },
+        hints: { type: [String], default: [] },
         order: { type: Number, default: 0 }, // display / round order
     },
     { timestamps: true }

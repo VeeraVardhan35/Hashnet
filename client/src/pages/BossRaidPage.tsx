@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBossRaid } from "../hooks/useBossRaid";
 import { useRoomStore } from "../store/room.store";
@@ -11,6 +11,56 @@ function formatTime(secs: number) {
   const m = Math.floor(secs / 60).toString().padStart(2, "0");
   const s = (secs % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
+}
+
+// Floating damage/heal number component
+type FloatVal = { id: number; value: number; isHeal: boolean };
+function useFloatingValues(hp: number) {
+  const [floats, setFloats] = useState<FloatVal[]>([]);
+  const prevHp = useRef(hp);
+  useEffect(() => {
+    if (prevHp.current !== hp && prevHp.current !== 0) {
+      const delta = hp - prevHp.current;
+      const id = Date.now();
+      setFloats((prev) => [...prev, { id, value: Math.abs(delta), isHeal: delta > 0 }]);
+      setTimeout(() => setFloats((prev) => prev.filter((f) => f.id !== id)), 1500);
+    }
+    prevHp.current = hp;
+  }, [hp]);
+  return floats;
+}
+
+function FloatingValueDisplay({ floats }: { floats: FloatVal[] }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+      {floats.map((f) => (
+        <div
+          key={f.id}
+          className={`absolute left-1/2 -translate-x-1/2 font-black text-sm ${
+            f.isHeal ? "text-emerald-400" : "text-red-400"
+          }`}
+          style={{
+            animation: "floatUp 1.4s ease-out forwards",
+            bottom: "100%",
+            textShadow: f.isHeal ? "0 0 12px #10b981" : "0 0 12px #ef4444",
+          }}
+        >
+          {f.isHeal ? "+" : "-"}{f.value.toLocaleString()}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Wrapper HP bar with floating values
+function HpBarWithFloats({ hp, maxHp, color = "emerald" }: { hp: number; maxHp: number; color?: string }) {
+  const floats = useFloatingValues(hp);
+  return (
+    <div className="relative">
+      <FloatingValueDisplay floats={floats} />
+      <HpBar hp={hp} maxHp={maxHp} color={color} />
+    </div>
+  );
 }
 
 function HpBar({ hp, maxHp, color = "emerald" }: { hp: number; maxHp: number; color?: string }) {
@@ -118,16 +168,18 @@ export default function BossRaidPage() {
   if (phase === "countdown") {
     const secs = Math.max(0, Math.ceil((phaseStartsAt - Date.now()) / 1000));
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base">
-        <div className="glass-card-solid p-12 text-center max-w-sm w-full mx-4 animate-slide-up">
-          <img src={bossImg} alt="boss" className="w-28 h-28 mx-auto mb-6 rounded-2xl object-cover opacity-90" />
-          <h1 className="text-2xl font-extrabold text-red-400 mb-1">{bossName}</h1>
-          <p className="text-xs text-text-muted mb-6">Level {bossLevel} Boss • {totalWaves} Waves</p>
-          <p className="text-text-secondary mb-2">Boss Raid begins in…</p>
-          <div className="text-7xl font-black text-red-400 mb-2">{secs > 0 ? secs : "Go!"}</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#010103]">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/20 to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="relative z-10 rounded-3xl border border-red-500/20 bg-[#12121a] p-12 text-center max-w-sm w-full mx-4 shadow-[0_0_50px_rgba(239,68,68,0.15)]">
+          <img src={bossImg} alt="boss" className="w-28 h-28 mx-auto mb-6 rounded-2xl object-cover opacity-90 shadow-[0_0_30px_rgba(239,68,68,0.4)]" />
+          <h1 className="text-3xl font-black text-red-400 mb-1">{bossName}</h1>
+          <p className="text-xs text-gray-500 mb-6">Level {bossLevel} Boss • {totalWaves} Waves</p>
+          <p className="text-gray-400 mb-4">Boss Raid begins in…</p>
+          <div className="text-[100px] font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 leading-none mb-6">{secs > 0 ? secs : "Go!"}</div>
           <div className="flex gap-2 justify-center mt-4">
             {alivePlayers.map((p) => (
-              <span key={p.id} className={`text-[10px] font-bold px-2 py-1 rounded border ${ROLE_BADGE[p.role]?.color ?? "text-text-muted"}`}>{p.role.toUpperCase()}</span>
+              <span key={p.id} className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${ROLE_BADGE[p.role]?.color ?? "text-gray-500"}`}>{p.role.toUpperCase()}</span>
             ))}
           </div>
         </div>
@@ -139,41 +191,42 @@ export default function BossRaidPage() {
   if (phase === "finished" && finalResult) {
     const won = finalResult.playersWon;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base px-4">
-        <div className="glass-card-solid p-8 max-w-xl w-full animate-slide-up">
+      <div className="min-h-screen flex items-center justify-center bg-[#010103] px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
+        <div className="relative z-10 rounded-3xl border border-white/10 bg-[#12121a] p-8 max-w-xl w-full shadow-[0_0_40px_rgba(239,68,68,0.1)]">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">{won ? "🏆" : "💀"}</div>
-            <h1 className={`text-3xl font-extrabold ${won ? "text-emerald-400" : "text-red-400"}`}>
+            <h1 className={`text-4xl font-black ${won ? "text-emerald-400" : "text-red-400"}`}>
               {won ? "Boss Defeated!" : "Boss Wins…"}
             </h1>
-            <p className="text-text-secondary mt-1">
+            <p className="text-gray-400 mt-2">
               {won ? `You destroyed the ${bossName}!` : `${bossName} was too powerful.`}
             </p>
-            {!won && <p className="text-text-muted text-sm mt-1">Boss HP Remaining: {finalResult.bossHpRemaining?.toLocaleString()}</p>}
+            {!won && <p className="text-gray-500 text-sm mt-1">Boss HP Remaining: {finalResult.bossHpRemaining?.toLocaleString()}</p>}
           </div>
 
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3">Damage Leaderboard</p>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Damage Leaderboard</p>
           <div className="space-y-2 mb-6">
             {finalResult.leaderboard?.map((entry: any, i: number) => {
               const medals = ["🥇", "🥈", "🥉"];
               return (
-                <div key={entry.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                  entry.isAlive ? "border-white/10 bg-white/[0.03]" : "border-red-500/15 bg-red-500/5 opacity-60"
+                <div key={entry.id} className={`flex items-center gap-3 p-4 rounded-2xl border ${
+                  entry.isAlive ? "border-white/10 bg-white/5" : "border-red-500/15 bg-red-500/5 opacity-60"
                 }`}>
                   <span className="text-lg w-7 text-center shrink-0">{entry.isAlive ? (i < 3 ? medals[i] : `#${i+1}`) : "☠"}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm truncate ${entry.isAlive ? "text-text-primary" : "text-text-muted line-through"}`}>{entry.username}</p>
-                    <p className="text-[10px] text-text-muted">{entry.role?.toUpperCase()} • {entry.solved} solved</p>
+                    <p className={`font-bold text-sm truncate ${entry.isAlive ? "text-white" : "text-gray-500 line-through"}`}>{entry.username}</p>
+                    <p className="text-[10px] text-gray-500">{entry.role?.toUpperCase()} • {entry.solved} solved</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-red-400">⚔ {entry.damageDealt.toLocaleString()}</p>
-                    <p className="text-[10px] text-text-muted">{entry.score} pts</p>
+                    <p className="text-sm font-black text-red-400">⚔ {entry.damageDealt.toLocaleString()}</p>
+                    <p className="text-[10px] text-gray-500">{entry.score} pts</p>
                   </div>
                 </div>
               );
             })}
           </div>
-          <button onClick={leaveRoom} className="btn-primary w-full">Back to Home</button>
+          <button onClick={leaveRoom} className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-500 hover:to-red-500 text-white font-black transition-all active:scale-[0.98]">Back to Home</button>
         </div>
       </div>
     );
@@ -181,43 +234,45 @@ export default function BossRaidPage() {
 
   // ── Main Game ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base overflow-hidden" style={{ height: "100vh" }}>
+    <div className="min-h-screen flex flex-col bg-[#010103] overflow-hidden" style={{ height: "100vh" }}>
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/8 bg-bg-surface/80 backdrop-blur shrink-0">
+      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#010103]/90 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-red-400 font-black text-sm">☠</span>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <span className="text-base">👾</span>
+          </div>
           <div>
-            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest leading-none">BOSS RAID</p>
-            <p className="text-text-secondary text-xs font-medium">Wave {waveNumber} / {totalWaves}</p>
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest leading-none">BOSS RAID</p>
+            <p className="text-gray-400 text-xs font-semibold">Wave {waveNumber} / {totalWaves}</p>
           </div>
           <div className="hidden xl:flex items-center gap-2 ml-2">
             <div className="w-48 relative">
-              <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+              <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
             </div>
-            <span className="text-xs font-bold text-text-muted tabular-nums">
+            <span className="text-xs font-bold text-gray-500 tabular-nums">
               {bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()} HP
             </span>
-            {isEnraged && <span className="text-[10px] font-black text-red-400 border border-red-400/40 px-2 py-0.5 rounded animate-pulse">ENRAGED</span>}
+            {isEnraged && <span className="text-[10px] font-black text-red-400 border border-red-400/40 px-2 py-0.5 rounded-lg animate-pulse">ENRAGED</span>}
           </div>
         </div>
 
         {/* Timer */}
         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-mono font-black text-xl ${
-          isUrgent ? "border-red-500/50 bg-red-500/10 text-red-400 animate-pulse"
+          isUrgent ? "border-red-500/50 bg-red-500/10 text-red-400 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.2)]"
           : timeLeft <= 120 ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
-          : "border-red-500/30 bg-red-500/5 text-red-400"
+          : "border-purple-500/30 bg-purple-500/5 text-purple-400"
         }`}>
-          <span className="text-xs text-text-muted">ENDS IN</span>
+          <span className="text-xs font-bold tracking-widest">ENDS IN</span>
           <span className="tabular-nums text-2xl">{formatTime(timeLeft)}</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 text-xs ${connected ? "text-success" : "text-danger"}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-success" : "bg-danger"}`} />
+          <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? "text-emerald-400" : "text-red-400"}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-emerald-400 animate-pulse" : "bg-red-400"}`} />
             {connected ? `${alivePlayers.length} Alive` : "Offline"}
           </div>
-          <button onClick={leaveRoom} className="btn-danger text-xs px-3 py-2">Leave Raid</button>
+          <button onClick={leaveRoom} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-colors">Leave Raid</button>
         </div>
       </nav>
 
@@ -230,28 +285,28 @@ export default function BossRaidPage() {
       </div>
 
       {/* Boss HP bar — mobile visible */}
-      <div className="xl:hidden border-b border-white/8 px-4 py-2 bg-red-950/20 shrink-0">
+      <div className="xl:hidden border-b border-white/5 px-4 py-2 bg-purple-950/20 shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-black ${isEnraged ? "text-red-400 animate-pulse" : "text-text-muted"}`}>
+          <span className={`text-xs font-black ${isEnraged ? "text-red-400 animate-pulse" : "text-gray-500"}`}>
             {isEnraged ? "⚠ ENRAGED" : bossName}
           </span>
-          <span className="text-xs font-bold text-text-muted tabular-nums">{bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()}</span>
+          <span className="text-xs font-bold text-gray-500 tabular-nums">{bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()}</span>
         </div>
-        <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+        <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
       </div>
 
       {/* 3-col layout */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
         {/* LEFT: Boss Info + Players */}
-        <aside className="w-56 xl:w-64 shrink-0 flex flex-col border-r border-white/8 bg-bg-surface/30 overflow-y-auto">
+        <aside className="w-56 xl:w-64 shrink-0 flex flex-col border-r border-white/5 bg-[#0d0d14] overflow-y-auto">
           {/* Boss card */}
-          <div className="p-3 border-b border-white/8">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Boss Info</p>
+          <div className="p-3 border-b border-white/5">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Boss Info</p>
             <img src={bossImg} alt={bossName} className="w-full h-24 object-cover rounded-xl mb-2 opacity-80" />
             <p className="text-sm font-black text-red-400 leading-tight">{bossName}</p>
             <p className="text-[10px] text-text-muted mb-2">Level {bossLevel} Boss</p>
-            <HpBar hp={bossHp} maxHp={bossMaxHp} color="purple" />
+            <HpBarWithFloats hp={bossHp} maxHp={bossMaxHp} color="purple" />
             <p className="text-[10px] text-text-muted tabular-nums mt-1">
               {bossHp.toLocaleString()} / {bossMaxHp.toLocaleString()} HP ({bossHpPct.toFixed(1)}%)
             </p>
@@ -265,8 +320,8 @@ export default function BossRaidPage() {
 
           {/* Next ability */}
           {nextAbilityName && (
-            <div className="p-3 border-b border-white/8">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Next Ability</p>
+            <div className="p-3 border-b border-white/5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Next Ability</p>
               <div className="px-2 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg">
                 <p className="text-xs font-black text-purple-400">⚡ {nextAbilityName}</p>
                 <p className="text-[10px] text-text-muted tabular-nums mt-0.5">
@@ -278,8 +333,8 @@ export default function BossRaidPage() {
 
           {/* Active abilities */}
           {activeAbilities.length > 0 && (
-            <div className="p-3 border-b border-white/8">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Active Effects</p>
+            <div className="p-3 border-b border-white/5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Active Effects</p>
               <div className="space-y-1">
                 {activeAbilities.map((ab, i) => (
                   <div key={i} className="text-[10px] px-2 py-1 bg-purple-500/5 border border-purple-500/20 rounded text-purple-400 font-bold">
@@ -291,8 +346,8 @@ export default function BossRaidPage() {
           )}
 
           {/* Wave progress */}
-          <div className="p-3 border-b border-white/8">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Raid Progress</p>
+          <div className="p-3 border-b border-white/5">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Raid Progress</p>
             <div className="flex gap-2">
               {Array.from({ length: totalWaves }).map((_, i) => (
                 <div key={i} className={`flex-1 h-2 rounded-full ${
@@ -307,8 +362,8 @@ export default function BossRaidPage() {
 
           {/* Your stats */}
           {myEntry && (
-            <div className="p-3 border-b border-white/8">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Your Stats</p>
+            <div className="p-3 border-b border-white/5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Your Stats</p>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-bold text-text-primary truncate">{myEntry.username}</span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${ROLE_BADGE[myEntry.role]?.color}`}>
@@ -322,7 +377,7 @@ export default function BossRaidPage() {
                   </span>
                   <span className="text-text-muted tabular-nums">{myEntry.hp} / {myEntry.maxHp}</span>
                 </div>
-                <HpBar hp={myEntry.hp} maxHp={myEntry.maxHp} />
+                <HpBarWithFloats hp={myEntry.hp} maxHp={myEntry.maxHp} />
               </div>
               {(isSilenced || isStunned || myEntry.isDoomMarked) && (
                 <div className="mt-2 space-y-1">
@@ -346,7 +401,7 @@ export default function BossRaidPage() {
 
           {/* Damage Leaderboard */}
           <div className="p-3 flex-1">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Damage Board</p>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Damage Board</p>
             <div className="space-y-1.5">
               {topDamage.map((p, i) => (
                 <div key={p.id} className={`flex items-center gap-1.5 ${!p.isAlive ? "opacity-40" : ""}`}>
@@ -364,12 +419,12 @@ export default function BossRaidPage() {
 
         {/* CENTER: Problem + Activity */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex border-b border-white/8 bg-bg-surface/20 shrink-0">
+          <div className="flex border-b border-white/5 bg-[#0d0d14] shrink-0">
             {(["problem", "submissions"] as const).map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-3 text-sm font-bold border-b-2 transition-colors capitalize ${
                 activeTab === tab
-                  ? "text-text-primary border-b-2 border-red-400 bg-bg-surface/40"
-                  : "text-text-muted hover:text-text-secondary"
+                  ? "border-red-500 text-red-400 bg-red-500/5"
+                  : "border-transparent text-gray-500 hover:text-gray-300"
               }`}>{tab}</button>
             ))}
           </div>
@@ -396,15 +451,60 @@ export default function BossRaidPage() {
                     <span className="badge bg-red-500/15 text-red-400 border-red-500/30 text-xs px-2.5 py-1">{problem.points} pts → damage</span>
                   </div>
                 </div>
+                {/* Tags & Companies */}
+                <div className="flex flex-wrap gap-1.5 mb-5 mt-2">
+                  {problem.tags?.map((tag) => (
+                    <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-gray-500 border border-white/5">{tag}</span>
+                  ))}
+                  {problem.companies?.map((company) => (
+                    <span key={company} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500/70 border border-amber-500/20">{company}</span>
+                  ))}
+                </div>
+
                 <p className="text-text-secondary text-sm leading-relaxed mb-6 whitespace-pre-wrap">{problem.description}</p>
+                
                 {problem.examples.map((ex, i) => (
                   <div key={i} className="mb-4 glass-card p-4 rounded-xl">
-                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Example {i + 1}</p>
-                    <p className="text-sm text-text-muted">Input: <span className="font-mono text-text-primary">{ex.input}</span></p>
-                    <p className="text-sm text-text-muted">Output: <span className="font-mono text-text-primary">{ex.output}</span></p>
-                    {ex.explanation && <p className="text-sm text-text-muted mt-1">Explanation: {ex.explanation}</p>}
+                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Example {i + 1}</p>
+                    <div className="space-y-2 text-sm text-text-muted font-mono">
+                      <div><span className="text-gray-500">Input: </span><br/><span className="text-white whitespace-pre-wrap">{ex.input.replace(/\\n/g, '\n')}</span></div>
+                      <div><span className="text-gray-500">Output: </span><br/><span className="text-emerald-400 font-semibold whitespace-pre-wrap">{ex.output.replace(/\\n/g, '\n')}</span></div>
+                      {ex.explanation && (
+                        <div className="text-gray-400 mt-2 font-sans leading-relaxed whitespace-pre-wrap">
+                          <span className="font-semibold">Explanation:</span><br/>{ex.explanation}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
+
+                {/* Constraints & Complexity */}
+                <div className="space-y-3 mb-5 mt-4">
+                  {problem.constraints && (
+                    <div className="glass-card p-4 rounded-xl">
+                      <p className="text-xs font-bold text-gray-500 mb-2">Constraints</p>
+                      <p className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{problem.constraints}</p>
+                    </div>
+                  )}
+                  {problem.expectedComplexity && (
+                    <div className="glass-card p-4 rounded-xl">
+                      <p className="text-xs font-bold text-gray-500 mb-2">Expected Complexity</p>
+                      <p className="text-sm text-gray-300 font-mono">{problem.expectedComplexity}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hints */}
+                {problem.hints && problem.hints.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <p className="text-xs font-bold text-gray-500 mb-2">Hints</p>
+                    {problem.hints.map((hint, i) => (
+                      <div key={i} className="rounded-xl border border-white/5 bg-[#0d0d14] p-3 text-xs text-gray-400">
+                        <span className="font-bold text-gray-500 mr-2">#{i + 1}</span> {hint}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {problem.hiddenCount > 0 && (
                   <div className="glass-card p-4 rounded-xl border-amber-500/20">
                     <p className="text-xs font-bold text-amber-400">+ {problem.hiddenCount} hidden test cases</p>

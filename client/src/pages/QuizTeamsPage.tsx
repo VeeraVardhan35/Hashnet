@@ -33,7 +33,7 @@ export default function QuizTeamsPage() {
 
   const [timeLeft, setTimeLeft] = useState(0);
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" && phase !== "reveal") return;
     const tick = () => setTimeLeft(Math.max(0, Math.ceil((roundEndsAt - Date.now()) / 1000)));
     tick();
     const id = setInterval(tick, 250);
@@ -63,22 +63,24 @@ export default function QuizTeamsPage() {
   if (phase === "countdown") {
     const secs = Math.max(0, Math.ceil((phaseStartsAt - Date.now()) / 1000));
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base">
-        <div className="glass-card-solid p-12 text-center max-w-md w-full mx-4 animate-slide-up">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 mx-auto mb-6 flex items-center justify-center">
-            <span className="text-4xl">🧠⚔️</span>
+      <div className="min-h-screen flex items-center justify-center bg-[#010103]">
+        <div className="absolute inset-0 bg-gradient-to-b from-teal-900/20 to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-teal-600/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="relative z-10 text-center">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-600 mx-auto mb-8 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+            <span className="text-5xl">🧠⚔️</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-text-primary mb-2">Quiz Teams</h1>
-          <p className="text-text-secondary mb-8">Alpha vs Beta — answer fast!</p>
-          <div className="text-7xl font-black text-gradient mb-6">{secs > 0 ? secs : "Go!"}</div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">
-              <p className="text-emerald-400 font-black text-lg">{alphaPlayers.length}</p>
-              <p className="text-xs text-text-muted">Team Alpha</p>
+          <h1 className="text-5xl font-black text-white mb-3 tracking-wider">QUIZ TEAMS</h1>
+          <p className="text-gray-400 mb-10 font-medium">Alpha vs Beta — answer fast!</p>
+          <div className="text-[120px] font-black leading-none mb-10 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">{secs > 0 ? secs : "Go!"}</div>
+          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+              <p className="text-emerald-400 font-black text-xl">{alphaPlayers.length}</p>
+              <p className="text-xs text-gray-500">Team Alpha</p>
             </div>
-            <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-center">
-              <p className="text-orange-400 font-black text-lg">{betaPlayers.length}</p>
-              <p className="text-xs text-text-muted">Team Beta</p>
+            <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-center">
+              <p className="text-orange-400 font-black text-xl">{betaPlayers.length}</p>
+              <p className="text-xs text-gray-500">Team Beta</p>
             </div>
           </div>
         </div>
@@ -91,47 +93,53 @@ export default function QuizTeamsPage() {
     const winner = teamAlphaScore > teamBetaScore ? "alpha" : teamBetaScore > teamAlphaScore ? "beta" : "tie";
     const allPlayers = [...alphaPlayers, ...betaPlayers].sort((a, b) => b.score - a.score);
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base px-4">
-        <div className="glass-card-solid p-8 max-w-xl w-full animate-slide-up">
-          <h1 className="text-3xl font-extrabold text-center mb-1">
-            {winner === "tie" ? "🤝 It's a Tie!" : winner === "alpha" ? "🏆 Team Alpha Wins!" : "🏆 Team Beta Wins!"}
-          </h1>
-          <p className="text-center text-text-secondary mb-6">Final Scores</p>
-
-          {/* Team score cards */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {[
-              { label: "TEAM ALPHA", score: teamAlphaScore, color: "emerald", team: "alpha" },
-              { label: "TEAM BETA",  score: teamBetaScore,  color: "orange",  team: "beta" },
-            ].map(({ label, score, color, team }) => (
-              <div key={team} className={`p-4 rounded-xl text-center border ${
-                winner === team
-                  ? `border-${color}-500/60 bg-${color}-500/15 shadow-lg`
-                  : "border-white/10 bg-white/[0.02]"
-              }`}>
-                <p className={`text-xs font-bold text-${color}-400 mb-1`}>{label}</p>
-                <p className="text-3xl font-black text-text-primary">{score.toLocaleString()}</p>
-                {winner === team && <p className="text-xs mt-1">👑 Winner</p>}
-              </div>
-            ))}
+      <div className="min-h-screen flex items-center justify-center bg-[#010103] px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-teal-900/10 to-transparent pointer-events-none" />
+        <div className="relative z-10 w-full max-w-xl">
+          <div className="text-center mb-8">
+            <div className="text-5xl mb-4">{winner === "tie" ? "🤝" : "🏆"}</div>
+            <h1 className="text-4xl font-black text-white mb-2">
+              {winner === "tie" ? "It's a Tie!" : winner === "alpha" ? "Team Alpha Wins!" : "Team Beta Wins!"}
+            </h1>
+            <p className="text-gray-400">Final Scores</p>
           </div>
 
-          {/* Player leaderboard */}
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3">Player Scores</p>
-          <div className="space-y-2 mb-6">
-            {allPlayers.map((p, i) => (
-              <div key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                p.team === "alpha" ? "border-emerald-500/20 bg-emerald-500/5" : "border-orange-500/20 bg-orange-500/5"
-              }`}>
-                <span className="text-sm text-text-muted w-5 text-center">{i + 1}</span>
-                <span className={`w-2 h-2 rounded-full shrink-0 ${p.team === "alpha" ? "bg-emerald-400" : "bg-orange-400"}`} />
-                <span className="flex-1 font-semibold text-text-primary text-sm truncate">{p.username}</span>
-                <span className="text-xs text-text-muted">streak {p.streak}🔥</span>
-                <span className="font-bold text-text-primary">{p.score}</span>
-              </div>
-            ))}
+          <div className="rounded-3xl border border-white/10 bg-[#12121a] p-6 mb-6">
+            {/* Team score cards */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {[
+                { label: "TEAM ALPHA", score: teamAlphaScore, color: "emerald", team: "alpha" },
+                { label: "TEAM BETA",  score: teamBetaScore,  color: "orange",  team: "beta" },
+              ].map(({ label, score, color, team }) => (
+                <div key={team} className={`p-5 rounded-2xl text-center border ${
+                  winner === team
+                    ? `border-${color}-500/60 bg-${color}-500/10 shadow-lg`
+                    : "border-white/10 bg-white/5"
+                }`}>
+                  <p className={`text-xs font-black text-${color}-400 mb-2 uppercase tracking-widest`}>{label}</p>
+                  <p className={`text-4xl font-black text-${color}-400`}>{score.toLocaleString()}</p>
+                  {winner === team && <p className="text-xs mt-2 text-amber-400 font-bold">👑 Winner</p>}
+                </div>
+              ))}
+            </div>
+
+            {/* Player leaderboard */}
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Player Scores</p>
+            <div className="space-y-2">
+              {allPlayers.map((p, i) => (
+                <div key={p.id} className={`flex items-center gap-3 p-4 rounded-2xl border ${
+                  p.team === "alpha" ? "border-emerald-500/20 bg-emerald-500/5" : "border-orange-500/20 bg-orange-500/5"
+                }`}>
+                  <span className="text-sm text-gray-500 w-5 text-center">{i + 1}</span>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.team === "alpha" ? "bg-emerald-400" : "bg-orange-400"}`} />
+                  <span className="flex-1 font-bold text-white text-sm truncate">{p.username}</span>
+                  <span className="text-xs text-gray-500">streak {p.streak}🔥</span>
+                  <span className="font-black text-white">{p.score}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <button onClick={leaveRoom} className="btn-primary w-full">Back to Home</button>
+          <button onClick={leaveRoom} className="w-full py-4 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-black transition-all active:scale-[0.98]">Back to Home</button>
         </div>
       </div>
     );
@@ -143,25 +151,27 @@ export default function QuizTeamsPage() {
   const labels = ["A", "B", "C", "D"];
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base overflow-hidden" style={{ height: "100vh" }}>
+    <div className="min-h-screen flex flex-col bg-[#010103] overflow-hidden" style={{ height: "100vh" }}>
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/8 bg-bg-surface/80 backdrop-blur shrink-0">
+      <nav className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#010103]/90 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-lg">🧠⚔️</span>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.4)]">
+            <span className="text-base">🧠⚔️</span>
+          </div>
           <div>
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest leading-none">QUIZ TEAMS</p>
-            <p className="text-text-secondary text-xs font-medium">Question {questionIndex + 1} / {questions.length}</p>
+            <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest leading-none">QUIZ TEAMS</p>
+            <p className="text-gray-400 text-xs font-semibold">Question {questionIndex + 1} / {questions.length}</p>
           </div>
         </div>
 
         {/* Timer */}
         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-mono font-black text-xl ${
-          isUrgent ? "border-red-500/50 bg-red-500/10 text-red-400 animate-pulse"
+          isUrgent ? "border-red-500/50 bg-red-500/10 text-red-400 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.2)]"
           : timeLeft <= 10 ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
-          : "border-accent/40 bg-accent/10 text-accent"
+          : "border-teal-500/30 bg-teal-500/5 text-teal-400"
         }`}>
-          <span className="text-sm">ENDS IN</span>
+          <span className="text-sm">{phase === "reveal" ? "NEXT IN" : "ENDS IN"}</span>
           <span className="tabular-nums text-2xl">{formatTime(timeLeft)}</span>
         </div>
 
