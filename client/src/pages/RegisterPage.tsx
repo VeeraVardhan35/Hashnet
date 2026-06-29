@@ -51,7 +51,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex bg-[#010103] text-white font-sans overflow-hidden">
       
       {/* Left Side - Graphic Background */}
-      <div className="hidden lg:flex flex-1 relative items-center justify-center border-r border-white/5 bg-[#0d0d14]">
+      <div className="hidden lg:flex flex-1 relative items-center justify-center border-r border-white/5 bg-[#010103]">
         <div className="absolute inset-0 bg-[url('/images/mode0.png')] bg-cover bg-center opacity-30 mix-blend-screen grayscale"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#010103] via-transparent to-[#010103]/80"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#010103]/80 via-transparent to-[#010103]"></div>
@@ -62,7 +62,27 @@ export default function RegisterPage() {
 
         <div className="relative z-10 flex flex-col items-center p-12">
           <div className="flex w-full justify-start mb-10">
-            <img src="/logo.png" alt="Hashnet Logo" className="h-40 w-full object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.4)] scale-110 transform" />
+            {/* Premium Logo Presentation Card */}
+            <div className="relative p-5 rounded-2xl border border-white/5 bg-[#030308]/60 backdrop-blur-xl shadow-[0_0_50px_-10px_rgba(6,182,212,0.3)] animate-float flex items-center justify-center max-w-[260px] mr-auto group overflow-hidden">
+              {/* Cyberpunk grid background */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+              
+              {/* Neon bloom background light */}
+              <div className="absolute w-28 h-28 bg-gradient-to-tr from-cyan-600/20 to-fuchsia-500/20 rounded-full blur-[30px] opacity-75 group-hover:scale-125 transition-transform duration-1000 pointer-events-none" />
+
+              {/* HUD Corner Brackets */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-500/50 rounded-tl-md" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-fuchsia-500/50 rounded-tr-md" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-fuchsia-500/50 rounded-bl-md" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-500/50 rounded-br-md" />
+
+              <img 
+                src="/logo.png" 
+                alt="Hashnet Logo" 
+                className="h-20 w-auto object-contain relative z-10 transition-all duration-300 drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]" 
+                style={{ mixBlendMode: 'screen' }} 
+              />
+            </div>
           </div>
 
           <div className="text-left w-full mt-auto">

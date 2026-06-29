@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-[#010103] text-white font-sans overflow-hidden">
       
       {/* Left Side - Graphic Background */}
-      <div className="hidden lg:flex flex-1 relative items-center justify-center border-r border-white/5 bg-[#0d0d14]">
+      <div className="hidden lg:flex flex-1 relative items-center justify-center border-r border-white/5 bg-[#010103]">
         {/* We can use CSS gradients to simulate the cyberpunk lighting if we don't have the exact image */}
         <div className="absolute inset-0 bg-[url('/images/mode12.png')] bg-cover bg-center opacity-30 mix-blend-screen grayscale"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#010103] via-transparent to-[#010103]/80"></div>
@@ -53,8 +53,29 @@ export default function LoginPage() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-fuchsia-600/20 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 blur-[120px] rounded-full pointer-events-none"></div>
 
-        <div className="relative z-10 flex flex-col items-center">
-          <img src="/logo.png" alt="Hashnet Logo" className="h-56 w-full object-contain mb-6 scale-110 transform drop-shadow-[0_0_30px_rgba(139,92,246,0.4)]" />
+        <div className="relative z-10 flex flex-col items-center p-6">
+          {/* Premium Logo Presentation Card */}
+          <div className="relative p-6 rounded-3xl border border-white/5 bg-[#030308]/60 backdrop-blur-xl shadow-[0_0_50px_-10px_rgba(139,92,246,0.3)] animate-float flex items-center justify-center max-w-[320px] mx-auto mb-8 group overflow-hidden">
+            {/* Cyberpunk grid background */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.05)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
+            
+            {/* Neon bloom background light */}
+            <div className="absolute w-36 h-36 bg-gradient-to-tr from-violet-600/20 to-cyan-500/20 rounded-full blur-[40px] opacity-75 group-hover:scale-125 transition-transform duration-1000 pointer-events-none" />
+
+            {/* HUD Corner Brackets */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-violet-500/50 rounded-tl-lg" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500/50 rounded-tr-lg" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500/50 rounded-bl-lg" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-violet-500/50 rounded-br-lg" />
+
+            <img 
+              src="/logo.png" 
+              alt="Hashnet Logo" 
+              className="h-28 w-auto object-contain relative z-10 transition-all duration-300 drop-shadow-[0_0_20px_rgba(139,92,246,0.5)]" 
+              style={{ mixBlendMode: 'screen' }} 
+            />
+          </div>
+
           <p className="text-gray-400 font-medium text-lg text-center max-w-sm">
             The ultimate platform for coders. Battles, challenges and glory await.
           </p>

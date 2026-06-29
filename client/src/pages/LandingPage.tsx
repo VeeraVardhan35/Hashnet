@@ -137,6 +137,60 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Overview / What is Hashnet? */}
+      <section className="relative max-w-7xl mx-auto px-6 py-20 border-y border-white/5 bg-[#050510]/50 backdrop-blur-md">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-5 space-y-6 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-black tracking-wider uppercase">
+              ✨ Discover Hashnet
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black leading-tight">
+              The Next Evolution of <br/>
+              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Interactive Learning</span>
+            </h2>
+            <p className="text-gray-400 text-base leading-relaxed">
+              Hashnet blends real-time multiplayer gaming mechanics with industry-grade software development practices. Whether you are prepping for interviews, training your team, or mastering data structures, Hashnet makes code education cooperative, competitive, and highly addictive.
+            </p>
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="p-4 rounded-xl border border-white/5 bg-white/5">
+                <div className="text-xl mb-1">🎮</div>
+                <div className="font-bold text-white text-sm">Gamified Progression</div>
+                <div className="text-xs text-gray-500">Earn XP, complete daily code quests, and raise your rankings.</div>
+              </div>
+              <div className="p-4 rounded-xl border border-white/5 bg-white/5">
+                <div className="text-xl mb-1">🚀</div>
+                <div className="font-bold text-white text-sm">Realtime Matchmaking</div>
+                <div className="text-xs text-gray-500">Join lobby rooms instantly with friends or online rivals.</div>
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-8 rounded-3xl border border-violet-500/20 bg-[#0d0d1e] space-y-4 hover:border-violet-500/40 transition-colors shadow-lg shadow-violet-950/20">
+              <div className="w-12 h-12 rounded-xl bg-violet-600/20 flex items-center justify-center text-2xl text-violet-400">🤖</div>
+              <h3 className="text-xl font-bold text-white">Agentic AI & RAG Mentor</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Unlock deeper insights with our built-in AI Guide. It analyzes uploaded documentation and code context (RAG) to provide contextual hints, conceptual breakdowns, and step-by-step guidance without spoiling the solution.
+              </p>
+            </div>
+            <div className="p-8 rounded-3xl border border-emerald-500/20 bg-[#0a1a14] space-y-4 hover:border-emerald-500/40 transition-colors shadow-lg shadow-emerald-950/20">
+              <div className="w-12 h-12 rounded-xl bg-emerald-600/20 flex items-center justify-center text-2xl text-emerald-400">🖥️</div>
+              <h3 className="text-xl font-bold text-white">Colyseus Multiplayer Engine</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Powered by a high-throughput Colyseus.js state-synchronization protocol. Every keystroke in the multiplayer coding room, every choice in quiz duels, and every attack on AI bosses is calculated and broadcast instantly.
+              </p>
+            </div>
+            <div className="p-8 rounded-3xl border border-fuchsia-500/20 bg-[#160b1c] space-y-4 hover:border-fuchsia-500/40 transition-colors shadow-lg shadow-fuchsia-950/20 md:col-span-2">
+              <div className="w-12 h-12 rounded-xl bg-fuchsia-600/20 flex items-center justify-center text-2xl text-fuchsia-400">⚔️</div>
+              <h3 className="text-xl font-bold text-white">Co-op & Raid Modes (MMORPG for Coders)</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Tackle algorithm problems or tricky system design quizzes as a guild. Team up with friends to deal damage to high-HP "AI Code Bosses" by writing optimized solutions. Coordinate roles, share strategies, and reap legendary rewards together.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Feature Cards */}
       <section className="relative max-w-7xl mx-auto px-6 py-20 space-y-12">
         {FEATURES.map((feat, idx) => {
