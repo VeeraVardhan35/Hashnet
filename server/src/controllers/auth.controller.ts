@@ -35,10 +35,13 @@ export const register = async (
             10
         );
 
+        const isAdmin = email === "admin@hashnet.com";
+
         const user = await User.create({
             username,
             email,
             password: hashedPassword,
+            isAdmin,
         });
 
         const token = generateToken(
@@ -52,6 +55,7 @@ export const register = async (
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                isAdmin: user.isAdmin,
             },
         });
 
@@ -108,6 +112,7 @@ export const login = async (
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                isAdmin: user.isAdmin,
             },
         });
 

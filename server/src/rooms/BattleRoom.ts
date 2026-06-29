@@ -19,6 +19,10 @@ interface ProblemData {
     hiddenTestCases: { input: string; expectedOutput: string }[];
     templates: { python: string; javascript: string; cpp: string };
     tags: string[];
+    constraints: string;
+    companies: string[];
+    expectedComplexity: string;
+    hints: string[];
 }
 
 export class BattleRoom extends Room<BattleState> {
@@ -30,11 +34,11 @@ export class BattleRoom extends Room<BattleState> {
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-    async onCreate(options: { lobbyRoomCode?: string }) {
+    async onCreate(options: any) {
         this.setState(new BattleState());
 
         this.state.roomCode = options?.lobbyRoomCode ?? generateRoomCode();
-        this.state.roundDuration = ROUND_DURATION_SECS;
+        this.state.roundDuration = options?.timePerQuestion ?? ROUND_DURATION_SECS;
         this.state.phase = "countdown";
         this.state.phaseStartsAt = Date.now() + START_COUNTDOWN_MS;
 
@@ -42,8 +46,15 @@ export class BattleRoom extends Room<BattleState> {
 
         console.log("[BattleRoom] Created, code:", this.state.roomCode);
 
-        // Load problems ordered by their `order` field
-        const docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        // Load problems matching filters
+        const filter: any = {};
+        if (options?.category && options.category !== "All Categories") filter.tags = options.category;
+        if (options?.difficulty && options.difficulty !== "Mixed") filter.difficulty = options.difficulty.toLowerCase();
+
+        let docs = await ProblemModel.find(filter).sort({ order: 1 }).lean();
+        if (docs.length === 0) {
+            docs = await ProblemModel.find({}).sort({ order: 1 }).lean();
+        }
         this.problems = docs.map((d) => ({
             title: d.title,
             description: d.description,
@@ -61,9 +72,13 @@ export class BattleRoom extends Room<BattleState> {
             })),
             templates: d.templates as any,
             tags: d.tags ?? [],
+            constraints: d.constraints ?? "",
+            companies: d.companies ?? [],
+            expectedComplexity: d.expectedComplexity ?? "",
+            hints: d.hints ?? [],
         }));
 
-        this.state.totalRounds = this.problems.length || 1;
+        this.state.totalRounds = Math.min(5, this.problems.length || 1);
 
         // Auto-start after countdown
         this.clock.setTimeout(() => {
@@ -260,14 +275,25 @@ export class BattleRoom extends Room<BattleState> {
         // (after it has registered all onMessage listeners) to avoid race conditions.
     }
 
-    onLeave(client: Client) {
+    async onLeave(client: Client, consented: boolean) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
-        const wasHost = player.isAlive && player.isHost;
-        this.state.players.delete(client.sessionId);
-        if (wasHost && this.state.players.size > 0) {
-            const next = Array.from(this.state.players.values()).find(p => p.isAlive);
-            if (next) next.isHost = true;
+
+        console.log(`[BattleRoom] ${player.username} disconnected. Waiting for reconnection...`);
+
+        try {
+            if (consented) throw new Error("consented");
+            await this.allowReconnection(client, 20);
+            console.log(`[BattleRoom] ${player.username} reconnected!`);
+        } catch (e) {
+            const wasHost = player.isAlive && player.isHost;
+            this.state.players.delete(client.sessionId);
+            console.log(`[BattleRoom] ${player.username} left for good`);
+
+            if (wasHost && this.state.players.size > 0) {
+                const next = Array.from(this.state.players.values()).find(p => p.isAlive);
+                if (next) next.isHost = true;
+            }
         }
     }
 
@@ -381,8 +407,10 @@ export class BattleRoom extends Room<BattleState> {
         );
         const nextRoundIndex = this.state.roundNumber; // 1-indexed, so next index = roundNumber
 
-        // Game ends if: only 1 (or 0) alive remain, OR we've run all rounds
-        if (alive.length <= 1 || nextRoundIndex >= this.problems.length) {
+        // Game ends if: 0 alive remain, OR we've run all rounds
+        // Note: alive.length === 1 no longer ends the game early — last player
+        // continues through remaining rounds and gets a champion result.
+        if (alive.length === 0 || nextRoundIndex >= this.problems.length) {
             setTimeout(() => this.finishGame(), RESULTS_PAUSE_MS);
         } else {
             setTimeout(() => this.startRound(nextRoundIndex), RESULTS_PAUSE_MS);

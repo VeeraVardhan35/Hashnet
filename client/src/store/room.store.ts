@@ -24,6 +24,8 @@ interface RoomState {
   quizBossRaidRoomId: string | null;
   /** Game mode of the current lobby */
   gameMode: string;
+  /** Boss level (1-10) for Boss Raid modes */
+  bossLevel: number;
 
   setRoom: (room: any) => void;
   setPlayers: (players: Player[]) => void;
@@ -37,6 +39,7 @@ interface RoomState {
   setQuizTeamsRoomId: (id: string | null) => void;
   setQuizBossRaidRoomId: (id: string | null) => void;
   setGameMode: (mode: string) => void;
+  setBossLevel: (level: number) => void;
   /** Reset all room state (called on leave) */
   reset: () => void;
 }
@@ -52,6 +55,7 @@ const initialState = {
   teamsRoomId: "",
   bossRaidRoomId: "",
   gameMode: "quiz",
+  bossLevel: 5,
 };
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -78,6 +82,7 @@ export const useRoomStore = create<RoomState>((set) => ({
   setQuizBossRaidRoomId: (quizBossRaidRoomId) => set({ quizBossRaidRoomId }),
 
   setGameMode: (gameMode) => set({ gameMode }),
+  setBossLevel: (bossLevel) => set({ bossLevel }),
 
   reset: () => set(initialState),
 }));
