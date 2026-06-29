@@ -14,7 +14,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         }
 
         const formData = new FormData();
-        const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+        const blob = new Blob([new Uint8Array(req.file.buffer)], { type: req.file.mimetype });
         formData.append("file", blob, req.file.originalname);
 
         const ragUrl = process.env.RAG_SERVER_URL || "http://localhost:8000";
